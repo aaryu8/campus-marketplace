@@ -12,6 +12,10 @@
 
 @layer base {
   :root {
+    --color-purple-700: oklch(49.6% .265 301.924);
+    --color-orange-500: oklch(70.5% .213 47.604);
+    --color-green-500:  oklch(72.3% .219 149.579);
+    --color-white: #fff;
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
