@@ -86,7 +86,11 @@ export default function Home() {
             </div>
 
             <ProductListing />
-            
+            <div className="text-center mt-12">
+              <button className="text-white font-bold py-3  px-11 mb-16  bg-blue-600 hover:bg-opacity-90 rounded-3xl">
+                See All
+              </button>
+            </div>
           </div>
         </section>
 
@@ -158,7 +162,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8 px-4">
+      <footer className="bg-gray-900 text-white py-24 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-sm sm:text-base">&copy; 2025 DormDeal Campus Marketplace . All rights reserved.</p>
         </div>

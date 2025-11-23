@@ -74,7 +74,7 @@ interface ProductItemProps {
 
 const ProductItem: React.FC<ProductItemProps> = ({ product }) => {
   return (
-    <div className="bg-white dark:bg-slate-800 border dark:border-none rounded-md relative p-2 h-full">
+    <div className="dark:bg-slate-800  bg-white border dark:border-none rounded-lg relative p-2 h-full">
       <a href="#!">
         <div className="absolute top-4 right-4 z-20 text-base p-4 rounded-full bg-slate-100 dark:bg-slate-900 flex justify-center items-center hover:text-blue-600">
           <FontAwesomeIcon icon={faHeart} />
@@ -120,7 +120,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product }) => {
 
 const ProductListing: React.FC = () => {
   return (
-    <section className="ezy__epgrid1 light py-14 md:py-24 bg-white dark:bg-[#0b1727] text-zinc-900 dark:text-white relative overflow-hidden z-10">
+    <section className="ezy__epgrid1 light py-14 md:py-24 dark:bg-[#0b1727] text-zinc-900 dark:text-white relative overflow-hidden z-10">
       <div className="container px-4 mx-auto">
         <div className="grid grid-cols-12 gap-6 text-center mt-12">
           {products.map((product, i) => (
@@ -133,11 +133,7 @@ const ProductListing: React.FC = () => {
           ))}
         </div>
       </div>
-      <div className="text-center mt-12">
-        <button className="text-white font-bold py-3 px-11  bg-blue-600 hover:bg-opacity-90 rounded-3xl">
-          See All
-        </button>
-      </div>
+      
     </section>
   );
 };

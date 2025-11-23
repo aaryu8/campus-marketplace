@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Mountains_of_Christmas } from "next/font/google"
 import { Input } from "../ui/input";
+import { Mountains_of_Christmas } from "next/font/google"
+
 
 const moc = Mountains_of_Christmas({
   subsets : ['latin'],
