@@ -7,8 +7,10 @@ import {
   faShoppingCart,
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
+import { useRouter } from "next/navigation";
 
 // Define product type
+
 interface Product {
   img: string;
   title: string;
@@ -16,57 +18,12 @@ interface Product {
   rating: string;
 }
 
-const products: Product[] = [
-  {
-    img: "https://cdn.easyfrontend.com/pictures/products/chair1.png",
-    title: "Full Body Massage Chair weightless Bluetooth",
-    price: "1725.00",
-    rating: "4.6",
-  },
-  {
-    img: "https://cdn.easyfrontend.com/pictures/products/perfume1.png",
-    title: "Original Brand 212 Perfume Vip Men Long Lasting",
-    price: "1725.00",
-    rating: "4.6",
-  },
-  {
-    img: "https://cdn.easyfrontend.com/pictures/ecommerce/headphone.png",
-    title: "Wireless Headset Bluetooth Earphones and Headphone",
-    price: "125.00",
-    rating: "4.1",
-  },
-  {
-    img: "https://cdn.easyfrontend.com/pictures/products/bag2.png",
-    title: "Teenage Girls and Boys Backpack Schoolbag High Quality Backpacks",
-    price: "116.00",
-    rating: "4.0",
-  },
-  {
-    img: "https://cdn.easyfrontend.com/pictures/products/lamp1.png",
-    title: "Touch Rechargeable Bud Table Lamps LED Creative",
-    price: "725.00",
-    rating: "4.8",
-  },
-  {
-    img: "https://cdn.easyfrontend.com/pictures/ecommerce/chair.png",
-    title: "Side Chair Back Chair Fabric Upholstered Seat Chairs",
-    price: "185.00",
-    rating: "4.1",
-  },
-  {
-    img: "https://cdn.easyfrontend.com/pictures/products/shoe2.png",
-    title: "Size 21-30 Children Basketball Shoes Girls Boys",
-    price: "1525.00",
-    rating: "4.2",
-  },
-  {
-    img: "https://cdn.easyfrontend.com/pictures/products/sofa3.png",
-    title:
-      "Solid Chair Cover Office Computer Spandex Split Seat Cover Universal",
-    price: "2225.00",
-    rating: "4.9",
-  },
-];
+interface ProductListingProps {
+  initialProducts : Product[]
+  showSeeMore? : boolean
+  loadMore? : boolean
+}
+
 
 interface ProductItemProps {
   product: Product;
@@ -118,12 +75,12 @@ const ProductItem: React.FC<ProductItemProps> = ({ product }) => {
   );
 };
 
-const ProductListing: React.FC = () => {
+const ProductListing = ({ initialProducts , showSeeMore = false , loadMore = false} : ProductListingProps) => {
   return (
     <section className="ezy__epgrid1 light py-14 md:py-24 dark:bg-[#0b1727] text-zinc-900 dark:text-white relative overflow-hidden z-10">
       <div className="container px-4 mx-auto">
         <div className="grid grid-cols-12 gap-6 text-center mt-12">
-          {products.map((product, i) => (
+          {initialProducts.map((product, i) => (
             <div
               className="col-span-12 sm:col-span-6 lg:col-span-4 xl:col-span-3 px-2 my-2"
               key={i}
@@ -132,10 +89,47 @@ const ProductListing: React.FC = () => {
             </div>
           ))}
         </div>
+        {showSeeMore && <SeeMoreButton />}
+        {loadMore && <LoadMoreButton />}
+        
       </div>
       
     </section>
   );
 };
+
+function SeeMoreButton(){
+  const router = useRouter();
+  return (
+     <div className="text-center mt-12">
+        <button 
+        onClick={() => {
+          router.push("/products");
+        }}
+        className="text-white font-bold py-3  px-11 mb-16  bg-blue-600 hover:bg-opacity-90 rounded-3xl">
+          See More
+        </button>
+      </div>
+  )
+}
+
+function LoadMoreButton(){
+  const router = useRouter();
+  
+  function onLoadMore(){
+
+  }
+
+  return (
+     <div className="text-center mt-12">
+        <button
+          onClick={onLoadMore}
+          className="text-white font-bold py-3  px-11 mb-16  bg-blue-600 hover:bg-opacity-90 rounded-3xl">
+          Load More
+        </button>
+      </div>
+  )
+}
+
 
 export default ProductListing;

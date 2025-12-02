@@ -1,15 +1,78 @@
 import Image from "next/image";
 import Navbar from "@/components/global/navbar";
-import { Mountains_of_Christmas } from "next/font/google"
+
 import { transcode } from "buffer";
 import ProductListing from "@/components/global/ProductListing";
-
+import { Mountains_of_Christmas } from "next/font/google"
 const moc = Mountains_of_Christmas({
   subsets : ['latin'],
   weight : ['700'],
 })
 
+interface Product {
+  img: string;
+  title: string;
+  price: string;
+  rating: string;
+}
+
+
 export default function Home() {
+  const featuredProducts: Product[] = [
+    {
+      img: "https://cdn.easyfrontend.com/pictures/products/chair1.png",
+      title: "Full Body Massage Chair weightless Bluetooth",
+      price: "1725.00",
+      rating: "4.6",
+    },
+    {
+      img: "https://cdn.easyfrontend.com/pictures/products/perfume1.png",
+      title: "Original Brand 212 Perfume Vip Men Long Lasting",
+      price: "1725.00",
+      rating: "4.6",
+    },
+    {
+      img: "https://cdn.easyfrontend.com/pictures/ecommerce/headphone.png",
+      title: "Wireless Headset Bluetooth Earphones and Headphone",
+      price: "125.00",
+      rating: "4.1",
+    },
+    {
+      img: "https://cdn.easyfrontend.com/pictures/products/bag2.png",
+      title: "Teenage Girls and Boys Backpack Schoolbag High Quality Backpacks",
+      price: "116.00",
+      rating: "4.0",
+    },
+    {
+      img: "https://cdn.easyfrontend.com/pictures/products/lamp1.png",
+      title: "Touch Rechargeable Bud Table Lamps LED Creative",
+      price: "725.00",
+      rating: "4.8",
+    },
+    {
+      img: "https://cdn.easyfrontend.com/pictures/ecommerce/chair.png",
+      title: "Side Chair Back Chair Fabric Upholstered Seat Chairs",
+      price: "185.00",
+      rating: "4.1",
+    },
+    {
+      img: "https://cdn.easyfrontend.com/pictures/products/shoe2.png",
+      title: "Size 21-30 Children Basketball Shoes Girls Boys",
+      price: "1525.00",
+      rating: "4.2",
+    },
+    {
+      img: "https://cdn.easyfrontend.com/pictures/products/sofa3.png",
+      title:
+        "Solid Chair Cover Office Computer Spandex Split Seat Cover Universal",
+      price: "2225.00",
+      rating: "4.9",
+    },
+  ];
+  
+
+
+
   return (
     <div className="min-h-screen bg-white">
       {/* Sticky Navbar */}
@@ -69,29 +132,7 @@ export default function Home() {
 
 
         <section>
-          <div className="container mx-auto px-4 relative z-10">
-            
-            <div className="text-center" style={{opacity : 1 , transform :  "none"}}>
-              <div className="inline-block px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 font-medium mb-4">
-                <span className="flex items-center justify-center text-sm">
-                  <span className="w-2 h-2 rounded-full bg-indigo-600 mr-2">
-                    </span>Featured Products</span>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Campus   <span className="text-[#ec6a29]">Essentials</span>
-              </h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Discover top-rated products that every student needs for a successful academic year. All items are verified and sold by trusted campus sellers.
-              </p>
-            </div>
-
-            <ProductListing />
-            <div className="text-center mt-12">
-              <button className="text-white font-bold py-3  px-11 mb-16  bg-blue-600 hover:bg-opacity-90 rounded-3xl">
-                See All
-              </button>
-            </div>
-          </div>
+          <ProductListing initialProducts={featuredProducts} showSeeMore={true}/> 
         </section>
 
 
