@@ -1,8 +1,6 @@
 "use client"
 
-import { GalleryVerticalEnd } from "lucide-react"
 
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -14,8 +12,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { ChangeEvent, FormEvent, useState } from "react"
 import axios from "axios"
-import { AuthModal } from "./authModal"
-
+import { useRouter } from "next/navigation"
 
 
 type formFields = {
@@ -29,7 +26,7 @@ type formFields = {
 
 
 export function SignupForm() {
-    
+    const router = useRouter(); 
   const [formData , setformData] = useState<formFields>({
     name : "",
     email :  "",
@@ -42,12 +39,6 @@ export function SignupForm() {
       <div className="flex flex-col gap-6">
       <form onSubmit={async (e : FormEvent<HTMLFormElement>) => {
               e.preventDefault();
-              try{
-
-              } catch (error){
-
-              }
-
               setshowModal(!showModal);
                 const response = await axios({
                 method : "post",
@@ -59,7 +50,11 @@ export function SignupForm() {
                 }
                 });
                 console.log(response.data);
-              
+                
+                if(response.data.authStatus){
+                  router.push("/");
+                }
+
             }}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
@@ -126,7 +121,6 @@ export function SignupForm() {
           
           <Field>
               <Button type="submit">Create Account</Button>
-              
           </Field>
           <FieldSeparator></FieldSeparator>
               

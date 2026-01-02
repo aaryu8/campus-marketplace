@@ -1,4 +1,3 @@
-import { GalleryVerticalEnd } from "lucide-react"
 
 import { SignupForm } from "@/components/auth/signup-form"
 import { Mountains_of_Christmas } from "next/font/google"

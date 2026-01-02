@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { ChangeEvent, FormEvent, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 
 
 
@@ -21,7 +22,7 @@ export function SignupForm({
   ...props
 }: React.ComponentProps<"div">) {
 
-
+  const router = useRouter();
   const [email , setEmail] = useState("");
   const [password , setPassword] = useState("");
 
@@ -40,6 +41,10 @@ export function SignupForm({
                     });
                     console.log(response.data);
                     
+                    if(response.data.authStatus){
+                      router.push('/');
+                    }
+
                   }}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
