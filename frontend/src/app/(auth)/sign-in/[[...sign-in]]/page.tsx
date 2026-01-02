@@ -1,6 +1,6 @@
 import { GalleryVerticalEnd } from "lucide-react"
 
-import { SignupForm } from "@/components/global/signin-form"
+import { SignupForm } from "@/components/auth/signin-form"
 import { Mountains_of_Christmas } from "next/font/google"
 const moc = Mountains_of_Christmas({
   subsets : ['latin'],

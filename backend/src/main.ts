@@ -99,8 +99,17 @@ app.post('/sign-up' , async (req : Request , res : Response) => {
         res.send("User Already Exists , go to sign in page");
     }
 
+
+    // USER PASSWORD AND EVERYTHING IS SOTRED AFTERWARDS FIRST SEND OTP AND CONFIRM WITH THE MAIL 
+    //IF VERIFIED THEN THE PROCESS FURTHER CONTINUES;   
+
+    const otp = crypto.randomInt(100000 , 999999).toString();
+
+
     const salt =  crypto.randomBytes(16).toString("hex").normalize();
     const hashedPassword = await hashPassword(password , salt);
+
+
 
 
     const user = await prisma.user.create({
@@ -113,6 +122,9 @@ app.post('/sign-up' , async (req : Request , res : Response) => {
     })
 
     console.log(user);
+
+
+
 
     createSession(req , res , user);
     console.log(req.session.userId);
