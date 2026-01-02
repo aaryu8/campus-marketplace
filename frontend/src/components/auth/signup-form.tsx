@@ -14,28 +14,51 @@ import {
 import { Input } from "@/components/ui/input"
 import { ChangeEvent, FormEvent, useState } from "react"
 import axios from "axios"
+import { AuthModal } from "./authModal"
 
-export function SignupForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
-    const [name , setName] = useState("");
-  const [email , setEmail] = useState("");
-  const [password , setPassword] = useState("");
-  return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+
+
+type formFields = {
+  name : string;
+  email : string;
+  password : string;
+  [key: string]: string;
+}
+
+
+
+
+export function SignupForm() {
+    
+  const [formData , setformData] = useState<formFields>({
+    name : "",
+    email :  "",
+    password : "",
+  })
+
+  const [showModal , setshowModal] = useState(false);
+
+  return (<>
+      <div className="flex flex-col gap-6">
       <form onSubmit={async (e : FormEvent<HTMLFormElement>) => {
               e.preventDefault();
-              const response = await axios({
+              try{
+
+              } catch (error){
+
+              }
+
+              setshowModal(!showModal);
+                const response = await axios({
                 method : "post",
                 url : "http://localhost:4000/sign-up",
                 data: {
-                  name : name,
-                  email : email,
-                  password : password
+                  name : formData.name,
+                  email : formData.email,
+                  password : formData.password
                 }
-              });
-              console.log(response.data);
+                });
+                console.log(response.data);
               
             }}>
         <FieldGroup>
@@ -54,7 +77,10 @@ export function SignupForm({
                 placeholder="Queen Elizabeth"
                 required
                 onChange={( e : ChangeEvent<HTMLInputElement>) => {
-                  setName(e.target.value);
+                  setformData({
+                    ...formData , 
+                    name : e.target.value
+                  })
                 }}
               />
           </Field>
@@ -66,7 +92,10 @@ export function SignupForm({
               placeholder="me@example.com"
               required
               onChange={( e : ChangeEvent<HTMLInputElement>) => {
-                  setEmail(e.target.value);
+                  setformData({
+                    ...formData,
+                    email : e.target.value
+                  })
                 }}
             />
             <FieldDescription>
@@ -84,7 +113,10 @@ export function SignupForm({
               required
               onChange={( e : ChangeEvent<HTMLInputElement>) => {
                   e.target.value = e.target.value.split(" ").join("");
-                  setPassword(e.target.value);
+                  setformData({
+                    ...formData , 
+                    password : e.target.value
+                  })
                 }}
             />
             <FieldDescription>
@@ -93,16 +125,19 @@ export function SignupForm({
           </Field>
           
           <Field>
-            <Button type="submit" >Create Account</Button>
+              <Button type="submit">Create Account</Button>
+              
           </Field>
           <FieldSeparator></FieldSeparator>
-          
+              
         </FieldGroup>
       </form>
+      
       <FieldDescription className="px-6 text-center">
         By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
         and <a href="#">Privacy Policy</a>.
       </FieldDescription>
     </div>
+    </>
   )
 }
