@@ -8,6 +8,7 @@ import crypto from 'crypto'
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import type { User as userSchema }  from '@prisma/client';
+import { ppid } from 'process';
 const app = express();
 
 app.use(cors({
@@ -21,6 +22,8 @@ app.use(cookieParser());
 app.use(express.json());
 
 
+// ek session expire ka kuch banana hai 
+
 
 app.use(session({
     secret : process.env.SECRET_KEY!,
@@ -32,7 +35,6 @@ app.use(session({
         maxAge : 60 * 60 * 24 * 7,
         sameSite : 'lax'
     }
-
 }))
 
 
@@ -57,8 +59,6 @@ function requireAuth(req : Request , res : Response , next : NextFunction){
 
 function createSession(req : Request , res : Response , user : userSchema ){
     req.session.userId = user.id;
-    req.session.name = user.name
-    req.session.email = user.email;
 }
 
 
@@ -79,12 +79,48 @@ function createSession(req : Request , res : Response , user : userSchema ){
 const port = 4000;
 
 
+app.get('/me'  , async(req : Request , res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) {
+        res.status(401).send(
+            { 
+                LoggedIn : false,
+                user : {
+                    id : null,
+                    name : null,
+                    email: null
+                }
+            }
+        );
+    }
+    
+    const user = await prisma.user.findUnique({
+        where : {
+            id : userId!
+        }
+    })
+
+    res.status(200).send({
+        LoggedIn : true,
+        user : {
+            id : user?.id,
+            name : user?.name,
+            email : user?.email
+        } 
+    });
+})
+
+
+
 app.post('/sign-up' , async (req : Request , res : Response) => {
     
     const rawData = req.body;
     const {success , data} = signupformInput.safeParse(rawData);
     if(!success){
-        res.send("Unable to Create Account");
+        res.send({
+            authStatus : false,
+            msg : "Unable to Create Account"
+        });
     }
 
 
@@ -96,7 +132,10 @@ app.post('/sign-up' , async (req : Request , res : Response) => {
     })
 
     if(check){
-        res.send("User Already Exists , go to sign in page");
+        res.send({
+            authStatus : false,
+            msg : "User Already Exists , go to sign in page"
+        });
     }
 
 
@@ -128,7 +167,10 @@ app.post('/sign-up' , async (req : Request , res : Response) => {
 
     createSession(req , res , user);
     console.log(req.session.userId);
-    res.status(200).send("USER CREATED");
+    res.status(200).send({
+        authStatus : true,
+        msg : "User Created"
+    });
 })
 
 
@@ -136,7 +178,10 @@ app.post('/sign-in' ,  async (req : Request , res : Response) => {
 
     const {success , data } = signinformInput.safeParse(req.body);
     if(!success){
-        res.send("UNABLE TO LOG IN ");
+        res.send({
+            authStatus : false,
+            msg : "UNABLE TO LOG IN "
+        });
     }
 
     const {email  , password  } = req.body;
@@ -148,7 +193,10 @@ app.post('/sign-in' ,  async (req : Request , res : Response) => {
     })
 
     if(!user){
-        res.send("YOU HAVEN'T SIGNED UP YET");
+        res.send({
+            authStatus : false,
+            msg : "YOU HAVEN'T SIGNED UP YET"
+        });
         return;
     } 
     
@@ -162,10 +210,26 @@ app.post('/sign-in' ,  async (req : Request , res : Response) => {
 
 
     createSession(req , res , user);
-
-    res.status(200).send("USER LOGGED IN")
+    console.log(req.session.userId);
+    res.status(200).send({
+        authStatus : true,
+        msg : "USER LOGGED IN"
+    })
 })
 
+
+app.post('/logout' , async (req : Request , res : Response) => {
+    req.session.destroy(err=> {
+        if(err) {
+            console.error(err);  
+            return res.status(500).send("Failed to log out"); 
+        }
+
+        res.clearCookie("connect.sid");
+        res.send("Logged OUT");
+        res.redirect("/");
+    })
+})
 
 
 
