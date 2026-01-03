@@ -1,12 +1,19 @@
 "use client"
 import { useState } from "react";
 import { ImageListing } from "../_components/ImageListing"
-import { Book, Bookmark } from 'lucide-react';
+import { Bookmark } from 'lucide-react';
+import { use } from "react"
+import { featuredProducts , Product } from "@/components/constants";
+import { useParams } from "next/navigation";
 
-type Props = {}
-
-const ProductBuying = (props: Props) => {
+const ProductBuying = ({params} : {params : string}) => {
     const [expanded, setExpanded] = useState(false);
+    const {productId} = useParams()
+    const currentProduct = featuredProducts.find((element) => {
+        return element.id == productId
+    })
+  
+    
 
 
     return (
@@ -16,7 +23,10 @@ const ProductBuying = (props: Props) => {
                 
                 {/* LEFT: Image Gallery (75% width) */}
                 <div className="w-3/4 h-full bg-black">
-                    <ImageListing src="/mission.avif" />
+                    {currentProduct?.image  && (
+                        <ImageListing src={`${currentProduct?.image}`}/>
+                    )}
+
                 </div>
                 
                 {/* RIGHT: Product Details (25% width) */}

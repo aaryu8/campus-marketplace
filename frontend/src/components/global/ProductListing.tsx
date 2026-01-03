@@ -8,15 +8,10 @@ import {
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
-
+import { Product } from "../constants";
 // Define product type
 
-interface Product {
-  img: string;
-  title: string;
-  price: string;
-  rating: string;
-}
+
 
 interface ProductListingProps {
   initialProducts : Product[]
@@ -31,17 +26,18 @@ interface ProductItemProps {
 
 const ProductItem: React.FC<ProductItemProps> = ({ product }) => {
   return (
+    
     <div className="dark:bg-slate-800  bg-white border dark:border-none rounded-lg relative p-2 h-full">
-      <a href="#!">
+      <a href="">
         <div className="absolute top-4 right-4 z-20 text-base p-4 rounded-full bg-slate-100 dark:bg-slate-900 flex justify-center items-center hover:text-blue-600">
           <FontAwesomeIcon icon={faHeart} />
         </div>
       </a>
       <div className="p-4 lg:p-6">
         <div className="min-h-[210px] flex justify-center items-center h-full px-6">
-          <a href="#!">
+          <a href={`/products/${product.id}`}>
             <img
-              src={product.img}
+              src={product.image}
               alt={product.title}
               className="max-h-[200px] max-w-full w-auto"
             />
@@ -49,7 +45,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product }) => {
         </div>
       </div>
       <div className="p-4 lg:p-6 h-full pt-0 text-start">
-        <a href="#!">
+        <a href={`/products/${product.id}`}>
           <h5 className="text-black dark:text-white text-base leading-5 font-medium">
             {product.title}
           </h5>

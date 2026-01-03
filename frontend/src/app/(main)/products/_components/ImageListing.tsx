@@ -19,7 +19,7 @@ export const ImageListing: React.FC<ImageListingProps> = ({
           src={src}
           alt={`${alt} background`}
           fill
-          className="object-cover blur-3xl scale-110"
+          className="object-cover blur-lg scale-110"
           priority
         />
       </div>
