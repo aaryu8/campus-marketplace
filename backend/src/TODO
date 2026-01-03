@@ -1,13 +1,11 @@
     main.ts
-1. session is getting created but what about session expiry how it will happen 
 2. requireAuth function kaha jayega
-3. otp sending and first confirming mail and then letting to create the account 
+3. otp sending and first confirming mail and then letting to create the account (LATER ON IN V2)
 
-basic flow
--> 1. /me , /logout endpoints
--> 2. /me allows what will logged in not logged in user see
--> 3. 
-
+    task
+    1. use neon db for photo storage and uploading set it up and use it for photos over there, 
+    2. create the route for upload , and create redirect if someonw wants to buy
+    3. restrict people to visit a page based on their auth status
 
 
 frontend : 
@@ -18,17 +16,8 @@ frontend :
 
 
 
+issue : 
+-> mismatch in the structure of an image / Product in constant 
+    ProductListing , and Homepage and further down to ImageListing for now, correc the interface and structure of all constants
 
 
-
-
-
-improvements : 
-Backend : 
-    main : 
-        6️⃣ What’s not included but optional / “sugary improvements”
-        1. Redis session store (currently uses default MemoryStore — not for production)
-        2. Session expiration on inactivity (optional: rolling sessions)
-        3. Rate limiting / brute-force protection on login
-        4. Email verification / OTP (you mentioned TODO)
-        5. More structured error handling (try/catch on all async routes)
