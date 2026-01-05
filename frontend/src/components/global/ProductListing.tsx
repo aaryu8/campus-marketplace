@@ -8,44 +8,47 @@ import {
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
-import { Product } from "../constants";
+import {  Items , Product } from "../constants";
 // Define product type
 
 
 
-interface ProductListingProps {
-  initialProducts : Product[]
-  showSeeMore? : boolean
-  loadMore? : boolean
-}
+// interface ProductListingProps {
+//   initialProducts : Product[]
+//   showSeeMore? : boolean
+//   loadMore? : boolean
+// }
 
 
+// interface ProductItemProps {
+//   product: Product;
+// }
 interface ProductItemProps {
-  product: Product;
+  product : Product
 }
 
-const ProductItem: React.FC<ProductItemProps> = ({ product }) => {
+const ProductItem = ({product} : ProductItemProps) => {
   return (
-    
     <div className="dark:bg-slate-800  bg-white border dark:border-none rounded-lg relative p-2 h-full">
-      <a href="">
+        <a href="">
         <div className="absolute top-4 right-4 z-20 text-base p-4 rounded-full bg-slate-100 dark:bg-slate-900 flex justify-center items-center hover:text-blue-600">
           <FontAwesomeIcon icon={faHeart} />
         </div>
       </a>
+      {/**image */}
       <div className="p-4 lg:p-6">
         <div className="min-h-[210px] flex justify-center items-center h-full px-6">
-          <a href={`/products/${product.id}`}>
+          <a href={`/marketplace/${product.id}`}>
             <img
-              src={product.image}
-              alt={product.title}
+              src={product.image[0]}
+              alt={product.image[0]}
               className="max-h-[200px] max-w-full w-auto"
             />
           </a>
         </div>
       </div>
       <div className="p-4 lg:p-6 h-full pt-0 text-start">
-        <a href={`/products/${product.id}`}>
+        <a href={`/marketplace/${product.id}`}>
           <h5 className="text-black dark:text-white text-base leading-5 font-medium">
             {product.title}
           </h5>
@@ -71,12 +74,20 @@ const ProductItem: React.FC<ProductItemProps> = ({ product }) => {
   );
 };
 
-const ProductListing = ({ initialProducts , showSeeMore = false , loadMore = false} : ProductListingProps) => {
+const ProductListing = ({products} : Items) => {
+
+  const router = useRouter();
+
+   if(!products){
+        alert("NO ITEMS TO SHOW CURRENTLY");
+        router.push('/'); 
+    }
+
   return (
     <section className="ezy__epgrid1 light py-14 md:py-24 dark:bg-[#0b1727] text-zinc-900 dark:text-white relative overflow-hidden z-10">
       <div className="container px-4 mx-auto">
         <div className="grid grid-cols-12 gap-6 text-center mt-12">
-          {initialProducts.map((product, i) => (
+          {products.map((product, i) => (
             <div
               className="col-span-12 sm:col-span-6 lg:col-span-4 xl:col-span-3 px-2 my-2"
               key={i}
@@ -85,9 +96,9 @@ const ProductListing = ({ initialProducts , showSeeMore = false , loadMore = fal
             </div>
           ))}
         </div>
-        {showSeeMore && <SeeMoreButton />}
+        {/* {showSeeMore && <SeeMoreButton /> in dono ko bahar nahi leke jaa sakte kya }
         {loadMore && <LoadMoreButton />}
-        
+         */}
       </div>
       
     </section>

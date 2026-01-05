@@ -139,10 +139,11 @@ const CreateListingComponent = () => {
                 <div className="flex-1 pl-10 pt-5">
                     <form onSubmit={handleSubmit}>
                         <div>
-                            <h1 className="text-gray-400 font-semibold">Title</h1>
+                            <h1 className="text-gray-400 font-extrabold">Title</h1>
                             <div className="w-3/4 pt-2 pb-3">
                                 <Textarea 
                                     value={itemData.title}  // ✅ Controlled input
+                                    placeholder="enter the title of the item"
                                     onChange={(e : ChangeEvent<HTMLTextAreaElement>) => {
                                         setitemData({
                                             ...itemData,
@@ -154,10 +155,11 @@ const CreateListingComponent = () => {
                             </div>
                         </div>
                         <div>
-                            <h1 className="text-gray-400 font-semibold">Enter the price for your item</h1>
+                            <h1 className="text-gray-400 font-extrabold">Enter the price for your item</h1>
                             <div className="w-3/4 pt-2 pb-3">
                                 <Textarea 
                                     value={itemData.price}  // ✅ Controlled input
+                                    placeholder="enter the price of your item"
                                     onChange={(e : ChangeEvent<HTMLTextAreaElement>) => {
                                         setitemData({
                                             ...itemData,
@@ -169,10 +171,11 @@ const CreateListingComponent = () => {
                             </div>
                         </div>
                         <div>
-                            <h1 className="text-gray-400 font-semibold">Description of your item</h1>
+                            <h1 className="text-gray-400 font-extrabold">Description of your item</h1>
                             <div className="w-3/4 pt-2 pb-5">
                                 <Textarea 
                                     value={itemData.description}  // ✅ Controlled input
+                                    placeholder="Enter item's details and your contact info"
                                     onChange={(e : ChangeEvent<HTMLTextAreaElement>) => {
                                         setitemData({
                                             ...itemData,

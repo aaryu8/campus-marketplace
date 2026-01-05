@@ -28,7 +28,7 @@ model User {
   products Product[]
 }
 
-
+//use uuid instead of cuid it looks better
 model Product {
   id String @id @default(cuid())
   title String 

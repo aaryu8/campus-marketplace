@@ -1,7 +1,7 @@
 import Navbar from "@/components/global/navbar";
 import ProductListing from "@/components/global/ProductListing";
 import { Mountains_of_Christmas } from "next/font/google"
-import {featuredProducts , Product} from "../../../components/constants"
+import axios from "axios";
 
 const moc = Mountains_of_Christmas({
   subsets : ['latin'],
@@ -11,9 +11,16 @@ const moc = Mountains_of_Christmas({
 
 
 
-export default function products(){
+export default async function products(){
 
-    
+
+    const response = await axios({
+        method : "GET",
+        url : "http://localhost:4000/marketplace",
+    })
+
+   
+
     return (
         <div className="min-h-screen bg-[#dce9fe]">
             <header className="sticky z-50 top-0 bg-white shadow-md">
@@ -21,7 +28,8 @@ export default function products(){
             </header>
             <main>
                 <section>
-                    <ProductListing initialProducts={featuredProducts} loadMore={true} />
+                    <ProductListing products={response.data} />
+                    {/**ProductListing Products={response.data} loadMore={true} /> */}
                 </section>
             </main>
 

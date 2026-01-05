@@ -8,8 +8,10 @@ interface ImageListingProps {
 
 export const ImageListing: React.FC<ImageListingProps> = ({
   src, 
-  alt = "ListingImage"
 }) => {
+
+  console.log(src);
+
   return (
     <div className="relative  max-full h-full overflow-hidden bg-black">
       
@@ -17,7 +19,7 @@ export const ImageListing: React.FC<ImageListingProps> = ({
       <div className="absolute inset-0">
         <Image
           src={src}
-          alt={`${alt} background`}
+          alt={src}
           fill
           className="object-cover blur-lg scale-110"
           priority
@@ -32,7 +34,7 @@ export const ImageListing: React.FC<ImageListingProps> = ({
         <div className="relative w-full h-full">
           <Image
             src={src}
-            alt={alt}
+            alt={src}
             fill
             className="object-contain"
             priority
