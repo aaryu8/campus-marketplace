@@ -30,7 +30,12 @@ export function SignupForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <form onSubmit={async (e : FormEvent<HTMLFormElement>) => {
-                    e.preventDefault();                    const response = await axios({
+                    e.preventDefault();                    
+                    if (password.length < 8) {
+                      alert("First Enter atleast 8 digits of password");
+                      return;
+                    }
+                    const response = await axios({
                       method : "post",
                       url : "http://localhost:4000/sign-in",
                       withCredentials : true,
@@ -69,17 +74,18 @@ export function SignupForm({
                   Enter your university mail
                 </FieldDescription>
           </Field>
-          <Field>
+         <Field>
             <FieldLabel htmlFor="password">Password</FieldLabel>
             <Input
               id="password"
               type="password"
-              placeholder="Enter the password for DormDeal"
+              placeholder="********"
               minLength={8}
               required
-              onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                setPassword(e.target.value);
-              }}
+              onChange={( e : ChangeEvent<HTMLInputElement>) => {
+                  e.target.value = e.target.value.split(" ").join("");
+                  setPassword(e.target.value);
+                }}
             />
             <FieldDescription>
                  <a href="/sign-up">Forgot Password ?</a>

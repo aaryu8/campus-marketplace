@@ -1,31 +1,3 @@
-    main.ts
-2. requireAuth function kaha jayega
-3. otp sending and first confirming mail and then letting to create the account (LATER ON IN V2)
-
-    task
-    1. use neon db for photo storage and uploading set it up and use it for photos over there, 
-    2. create the route for upload , and create redirect if someonw wants to buy
-    3. restrict people to visit a page based on their auth status
-
-
-frontend : 
-    auth : 
-    1. whenever an error comes modal comes and shows the info 
-    2. pushing the users to the main page with the session 
-
-
-
-
-issue : 
--> mismatch in the structure of an image / Product in constant 
-    ProductListing , and Homepage and further down to ImageListing for now, correc the interface and structure of all constants
-
-
-
-
-
-
-
-CURRENTLY : 
-1. ROUTE FOR /CREATE IN BACKEND
-2. ROUTE FOR BUYING 
+issue : - 
+1. issues on creating user and singin up , first log their session id's to check if session is being created or not
+2. then check why /me endpoint is failing on homepage which causes the signup-signin page to not go away after logging in

@@ -33,13 +33,17 @@ export function SignupForm() {
     password : "",
   })
 
-  const [showModal , setshowModal] = useState(false);
+  //const [showModal , setshowModal] = useState(false);
 
   return (<>
       <div className="flex flex-col gap-6">
       <form onSubmit={async (e : FormEvent<HTMLFormElement>) => {
               e.preventDefault();
-              setshowModal(!showModal);
+              //setshowModal(!showModal);
+                if (formData.password.length < 8) {
+                  alert("First Enter atleast 8 digits of password");
+                  return;
+                }
                 const response = await axios({
                 method : "post",
                 url : "http://localhost:4000/sign-up",

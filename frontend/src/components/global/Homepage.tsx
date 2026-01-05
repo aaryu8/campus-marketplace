@@ -26,6 +26,9 @@ const Homepage = async ({userName , userEmail} : HomepageProps) => {
         url : "http://localhost:4000/marketplace",
     })
 
+    console.log(userName);
+    console.log(userEmail);
+
 
     return (
  <div className="min-h-screen bg-white">
@@ -46,7 +49,7 @@ const Homepage = async ({userName , userEmail} : HomepageProps) => {
           
           <div className="relative w-full max-w-7xl mx-auto py-12 sm:py-16 md:py-20 pb-32 sm:pb-40 md:pb-48 z-10">
             <div className="text-center">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-4 sm:mb-6 leading-tight drop-shadow-lg text-white px-2">
+              <h1 className=" font-sans text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-4 sm:mb-6 leading-tight drop-shadow-lg text-white px-2">
                 Welcome to{' '}
                 <span className={`${moc.className} bg-gradient-to-r  from-yellow-300 via-orange-400 to-green-300 bg-clip-text text-transparent`}>
                   DormDeal
@@ -69,11 +72,11 @@ const Homepage = async ({userName , userEmail} : HomepageProps) => {
                   </button>
                 </a>
                 <a 
-                  href="/stay" 
+                  href="/sign-in" 
                   className="w-full sm:w-auto"
                   aria-label="Find accommodation options"
                 >
-                  { userName &&  <button className="w-full px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-2xl border-2 border-white/70 text-white hover:bg-white/10 active:bg-white/20 font-semibold transition-all duration-300 hover:scale-105">
+                  { !userName &&  <button className="w-full px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-2xl border-2 border-white/70 text-white hover:bg-white/10 active:bg-white/20 font-semibold transition-all duration-300 hover:scale-105">
                       Sign-up OR Sign-in
                     </button>
                   }
