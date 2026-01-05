@@ -34,7 +34,7 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             <Link 
-              href="/listings" 
+              href="/marketplace" 
               className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
             >
               Browse Items

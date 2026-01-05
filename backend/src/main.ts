@@ -125,15 +125,13 @@ app.get("/marketplace" ,  async (req : Request , res : Response) => {
 })
 
 
-app.get("/marketplace/productInfo" ,  async(req : Request ,res: Response)=> {
+app.get("/marketplace/productInfo" , requireAuth ,   async(req : Request ,res: Response)=> {
     try {
-        console.log("GOT TILL HERE");
         const userName = req.session.name;
         const userEmail = req.session.email;
 
         const { productId } = req.body;
-        console.log(req.body);
-        console.log(productId);
+
         const productInfo = await prisma.product.findUnique({
             where : {
                 id : productId
@@ -156,7 +154,6 @@ app.get("/marketplace/productInfo" ,  async(req : Request ,res: Response)=> {
             }
         })
         
-        console.log(productInfo!.owner);
 
         res.status(200).send({
             taskStatus : true,
@@ -256,7 +253,7 @@ app.post('/sign-up', async (req: Request, res: Response) => {
 
         // ✅ Wait for session to save
         await createSession(req, user);
-
+        
         return res.status(201).send({
             authStatus: true,
             msg: "User created successfully"
@@ -307,7 +304,7 @@ app.post('/sign-in', async (req: Request, res: Response) => {
         // ✅ Wait for session to save
         await createSession(req, user);
         
-        console.log("User logged in:", req.session.userId);
+        console.log("User logged in:", req.sessionID);
 
         return res.status(200).send({
             authStatus: true,
