@@ -8,8 +8,11 @@ import crypto from 'crypto'
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import type { User as userSchema }  from '@prisma/client';
-import { ppid } from 'process';
+import { productSchema } from './schema.js';
+
 const app = express();
+
+
 
 app.use(cors({
     origin: 'http://localhost:3000', 
@@ -30,10 +33,11 @@ app.use(session({
     resave : false,
     saveUninitialized : false,
     cookie : {
-        secure : process.env.NODE_ENV == "production",
+        // process.env.NODE_ENV == "production",
+        secure : false,
         httpOnly : true,
-        maxAge : 60 * 60 * 24 * 7,
-        sameSite : 'lax'
+        maxAge : 1000 * 60 * 60 * 24 * 7,
+        sameSite : 'lax'    
     }
 }))
 
@@ -78,6 +82,45 @@ function createSession(req : Request , res : Response , user : userSchema ){
 
 const port = 4000;
 
+
+app.post("/createListing" , requireAuth , async ( req : Request , res : Response ) => {
+    const rawData = req.body;
+     const {success , data} = productSchema.safeParse(rawData);
+
+    if(!success){
+        res.status(401).send({
+            msg : "Error listing the item "
+        })
+    }
+
+    const { title  , price , description , image} = rawData;
+
+    const userId = req.session.userId;
+    const user = await prisma.user.findUnique({
+        where : {
+            id : userId!
+        }
+    })
+
+    
+    const product = await prisma.product.create({
+       data : {
+        title : title,
+        price : parseInt(price , 10),
+        description : description,
+        category : "car",
+        image : image,
+        ownerId : userId!   
+       }
+    })
+
+    console.log(product);
+
+    res.status(200).send({
+        taskStatus : true
+    })
+
+})
 
 app.get('/me'  , async(req : Request , res: Response) => {
     const userId = req.session.userId;
