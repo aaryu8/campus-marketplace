@@ -43,6 +43,7 @@ export function SignupForm() {
                 const response = await axios({
                 method : "post",
                 url : "http://localhost:4000/sign-up",
+                withCredentials : true,
                 data: {
                   name : formData.name,
                   email : formData.email,

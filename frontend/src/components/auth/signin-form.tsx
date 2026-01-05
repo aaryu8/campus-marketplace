@@ -30,10 +30,10 @@ export function SignupForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <form onSubmit={async (e : FormEvent<HTMLFormElement>) => {
-                    e.preventDefault();
-                    const response = await axios({
+                    e.preventDefault();                    const response = await axios({
                       method : "post",
                       url : "http://localhost:4000/sign-in",
+                      withCredentials : true,
                       data: {
                         email : email,
                         password : password

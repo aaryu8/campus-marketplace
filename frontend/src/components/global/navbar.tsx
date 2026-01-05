@@ -52,7 +52,7 @@ export default function Navbar() {
               Food
             </Link>
             <Link 
-              href="/sell" 
+              href="/createListing" 
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors"
             >
               Sell Item

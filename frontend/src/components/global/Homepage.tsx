@@ -2,9 +2,9 @@
 import Navbar from "@/components/global/navbar";
 
 import ProductListing from "@/components/global/ProductListing";
+import axios from "axios";
 import { Mountains_of_Christmas } from "next/font/google"
 import React from "react";
-import { featuredProducts } from "../constants";
 const moc = Mountains_of_Christmas({
   subsets : ['latin'],
   weight : ['700'],
@@ -19,7 +19,13 @@ interface HomepageProps {
 }
 
 
-const Homepage : React.FC<HomepageProps> = (userName , userEmail) => {
+const Homepage = async ({userName , userEmail} : HomepageProps) => {
+
+   const response = await axios({
+        method : "GET",
+        url : "http://localhost:4000/marketplace",
+    })
+
 
     return (
  <div className="min-h-screen bg-white">
@@ -54,8 +60,8 @@ const Homepage : React.FC<HomepageProps> = (userName , userEmail) => {
               {/* Call to Action Buttons */}
               <nav className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 max-w-md sm:max-w-none mx-auto" aria-label="Primary navigation">
                 <a 
-                  href="/listings" 
-                  className="w-full sm:w-auto"
+                  href="/marketplace" 
+                  className="w-full sm:w-auto"  
                   aria-label="Browse available items for sale"
                 >
                   <button className="w-full px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-2xl bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 font-semibold shadow-2xl transition-all duration-300 hover:scale-105">
@@ -67,9 +73,10 @@ const Homepage : React.FC<HomepageProps> = (userName , userEmail) => {
                   className="w-full sm:w-auto"
                   aria-label="Find accommodation options"
                 >
-                  <button className="w-full px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-2xl border-2 border-white/70 text-white hover:bg-white/10 active:bg-white/20 font-semibold transition-all duration-300 hover:scale-105">
-                    Sign-up OR Sign-in
-                  </button>
+                  { userName &&  <button className="w-full px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-2xl border-2 border-white/70 text-white hover:bg-white/10 active:bg-white/20 font-semibold transition-all duration-300 hover:scale-105">
+                      Sign-up OR Sign-in
+                    </button>
+                  }
                 </a>
               </nav>
             </div>
@@ -80,7 +87,8 @@ const Homepage : React.FC<HomepageProps> = (userName , userEmail) => {
 
 
         <section>
-          <ProductListing initialProducts={featuredProducts} showSeeMore={true}/> 
+          <ProductListing products={response.data}/> 
+                  {/**<ProductListing initialProducts={featuredProducts} showSeeMore={true}/>  */}
         </section>
 
 
