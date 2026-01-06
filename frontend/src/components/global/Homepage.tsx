@@ -91,7 +91,7 @@ const Homepage = async ({userName , userEmail} : HomepageProps) => {
 
         <section>
           <ProductListing products={response.data}/> 
-                  {/**<ProductListing initialProducts={featuredProducts} showSeeMore={true}/>  */}
+                  {/**<ProductListing initialProducts={featuredProducts} />  */}
         </section>
 
 

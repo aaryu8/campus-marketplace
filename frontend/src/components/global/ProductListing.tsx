@@ -1,6 +1,6 @@
 'use client';
 
-import React from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faHeart,
@@ -74,9 +74,16 @@ const ProductItem = ({product} : ProductItemProps) => {
   );
 };
 
-const ProductListing = ({products} : Items) => {
 
+
+const ProductListing = ({products } : Items) => {
+
+  const [seeMore , showSeeMore] = useState(true);
   const router = useRouter();
+
+  function onclick(seeMore : boolean){
+    showSeeMore(!seeMore);
+  }
 
    if(!products){
         alert("NO ITEMS TO SHOW CURRENTLY");
@@ -96,6 +103,7 @@ const ProductListing = ({products} : Items) => {
             </div>
           ))}
         </div>
+        {seeMore && <SeeMoreButton seeMore={seeMore} onclick={onclick}/>}
         {/* {showSeeMore && <SeeMoreButton /> in dono ko bahar nahi leke jaa sakte kya }
         {loadMore && <LoadMoreButton />}
          */}
@@ -105,13 +113,19 @@ const ProductListing = ({products} : Items) => {
   );
 };
 
-function SeeMoreButton(){
+interface SeeMoretype {
+  seeMore : boolean;
+  onclick : (seeMore : boolean) => void;
+}
+
+function SeeMoreButton({seeMore , onclick} : SeeMoretype){
   const router = useRouter();
   return (
      <div className="text-center mt-12">
         <button 
         onClick={() => {
-          router.push("/products");
+          onclick(seeMore);
+          router.push("/marketplace");
         }}
         className="text-white font-bold py-3  px-11 mb-16  bg-blue-600 hover:bg-opacity-90 rounded-3xl">
           See More
