@@ -1,3 +1,10 @@
 issue : - 
 1. issues on creating user and singin up , first log their session id's to check if session is being created or not
 2. then check why /me endpoint is failing on homepage which causes the signup-signin page to not go away after logging in
+3. sign up sign in frontend
+
+
+
+
+
+1. contact details , productInfo remove requireAuth

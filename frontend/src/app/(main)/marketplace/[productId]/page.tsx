@@ -4,6 +4,7 @@ import { use } from "react"
 import { Product } from "@/components/constants";
 import { MapsandChatbot , ButtonsComponent , DescriptionComponent } from "../_components/clientproduct";
 import axios from "axios";
+import { cookies } from "next/headers";
 
 type Props = {
     params : {
@@ -15,18 +16,20 @@ type Props = {
 const ProductBuying = async ({params} : Props) => {
     
     const {productId} = params;
+      // you're making a req from server , they don't have cookies browser has them so syou explicitly get it and sent it
+    const cookieStore = await cookies(); 
+    const sessionCookie = cookieStore.get('session_id');
 
     try {
         console.log("reached here in frontend")
         const response = await axios({
             method : "GET",
-            url : "http://localhost:4000/marketplace/productInfo",
-            withCredentials : true,
-            data : {
-                productId
+            url : `http://localhost:4000/marketplace/${productId}`,
+            headers : {
+                Cookie : `session_id=${sessionCookie?.value}`
             }
-        })
-
+       })
+        
 
         if(!response.data.taskStatus){
             alert('Cannot fetch product Information at the moment');

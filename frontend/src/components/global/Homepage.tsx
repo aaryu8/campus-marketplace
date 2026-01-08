@@ -26,10 +26,6 @@ const Homepage = async ({userName , userEmail} : HomepageProps) => {
         url : "http://localhost:4000/marketplace",
     })
 
-    console.log(userName);
-    console.log(userEmail);
-
-
     return (
  <div className="min-h-screen bg-white">
       {/* Sticky Navbar */}

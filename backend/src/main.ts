@@ -6,9 +6,11 @@ import { prisma } from "./db.js"
 import { signinformInput, signupformInput, productSchema } from './schema.js';
 import crypto from 'crypto'
 import cookieParser from 'cookie-parser';
-import session from 'express-session';
-import type { User as userSchema } from '@prisma/client';
+import { createSession, getUserfromSession, removeUserfromSession } from './actions/session.js';
+import { redisClient } from './redis/redis.js';
+import dotenv from "dotenv"
 
+dotenv.config(); 
 const app = express();
 
 app.use(cors({
@@ -22,54 +24,24 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); 
 
-app.use(session({
-    secret: process.env.SECRET_KEY!,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: false,
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-        sameSite: 'lax'
-    }
-}));
+// ✅ No more express-session middleware needed!
 
-
-declare module 'express-session' {
-    interface SessionData {
-        userId: string,
-        name: string,
-        email: string,
-    }
-}
-
-function requireAuth(req: Request, res: Response, next: NextFunction) {
-    const userId = req.session.userId;
-    if (!userId) {
+async function requireAuth(req: Request, res: Response, next: NextFunction) {
+    const userInfo = await getUserfromSession(req);
+    if (!userInfo) {
         return res.status(401).send({ msg: "YOU ARE NOT LOGGED IN" });
     }
+    console.log(userInfo);
+    res.locals.user = userInfo;
     next();
-}
-
-// ✅ Promisified session creation
-function createSession(req: Request, user: userSchema): Promise<void> {
-    return new Promise((resolve, reject) => {
-        req.session.userId = user.id;
-        req.session.save((err) => {
-            if (err) {
-                console.error("Session save error:", err);
-                reject(err);
-            } else {
-                resolve();
-            }
-        });
-    });
 }
 
 const port = 4000;
 
 app.post("/createListing", requireAuth, async (req: Request, res: Response) => {
     try {
+        const userInfo = res.locals.user;
+
         const rawData = req.body;
         const { success, data } = productSchema.safeParse(rawData);
 
@@ -80,7 +52,8 @@ app.post("/createListing", requireAuth, async (req: Request, res: Response) => {
         }
 
         const { title, price, description, image } = data;
-        const userId = req.session.userId;
+
+        const userId = userInfo.id;
         
         const user = await prisma.user.findUnique({
             where: { id: userId! }
@@ -114,85 +87,63 @@ app.post("/createListing", requireAuth, async (req: Request, res: Response) => {
     }
 });
 
-app.get("/marketplace" ,  async (req : Request , res : Response) => {
+app.get("/marketplace", async (req: Request, res: Response) => {
     try {
-        console.log("IT is coming ot this route don't worry");
         const products = await prisma.product.findMany();
         return res.status(200).send(products);
-    } catch (error){
+    } catch (error) {
         console.error(error);
     }
 })
 
-
-app.get("/marketplace/productInfo" , requireAuth ,   async(req : Request ,res: Response)=> {
+app.get("/marketplace/:productId", requireAuth, async (req: Request, res: Response) => {
     try {
-        const userName = req.session.name;
-        const userEmail = req.session.email;
-
-        const { productId } = req.body;
+        const { productId } = req.params;
 
         const productInfo = await prisma.product.findUnique({
-            where : {
-                id : productId
+            where: {
+                id: productId!
             },
-            select : {
-                title : true,
-                price : true,
-                description : true,
-                rating : true,
-                category : true,
-                condition : true,
-                image : true,
-                createdAt : true,
-                owner : {
-                    select : {
-                        name : true,
-                        email : true
+            select: {
+                title: true,
+                price: true,
+                description: true,
+                rating: true,
+                category: true,
+                condition: true,
+                image: true,
+                createdAt: true,
+                owner: {
+                    select: {
+                        name: true,
+                        email: true
                     }
                 }
             }
         })
-        
 
         res.status(200).send({
-            taskStatus : true,
-            data : {
+            taskStatus: true,
+            data: {
                 productInfo
             }
         });
 
-    } catch (error){
+    } catch (error) {
         console.error(error);
         return res.send({
-            taskStatus : false,
-            msg : "Could Not fetch product information"
+            taskStatus: false,
+            msg: "Could Not fetch product information"
         })
     }
 })
 
-
 app.get('/me', async (req: Request, res: Response) => {
     try {
-        const userId = req.session.userId;
+        const user = await getUserfromSession(req);
         
-        if (!userId) {
-            return res.status(401).send({
-                LoggedIn: false,
-                user: {
-                    id: null,
-                    name: null,
-                    email: null
-                }
-            });
-        }
-
-        const user = await prisma.user.findUnique({
-            where: { id: userId }
-        });
-
         if (!user) {
-            return res.status(404).send({
+            return res.status(401).send({
                 LoggedIn: false,
                 user: null
             });
@@ -200,11 +151,7 @@ app.get('/me', async (req: Request, res: Response) => {
 
         return res.status(200).send({
             LoggedIn: true,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email
-            }
+            user: user
         });
     } catch (error) {
         console.error("Error in /me:", error);
@@ -250,9 +197,14 @@ app.post('/sign-up', async (req: Request, res: Response) => {
         });
 
         console.log("User created:", user.id);
+        
+        const sessionObject = {
+            id: user.id,
+            name: user.name,
+            email: user.email
+        }
 
-        // ✅ Wait for session to save
-        await createSession(req, user);
+        await createSession(sessionObject, res);    
         
         return res.status(201).send({
             authStatus: true,
@@ -301,10 +253,13 @@ app.post('/sign-in', async (req: Request, res: Response) => {
             });
         }
 
-        // ✅ Wait for session to save
-        await createSession(req, user);
+        const sessionObject = {
+            id: user.id,
+            name: user.name,
+            email: user.email
+        }
         
-        console.log("User logged in:", req.sessionID);
+        await createSession(sessionObject, res);
 
         return res.status(200).send({
             authStatus: true,
@@ -321,15 +276,11 @@ app.post('/sign-in', async (req: Request, res: Response) => {
 });
 
 app.post('/logout', async (req: Request, res: Response) => {
-    req.session.destroy(err => {
-        if (err) {
-            console.error("Logout error:", err);
-            return res.status(500).send({ msg: "Failed to log out" });
-        }
-
-        res.clearCookie("connect.sid");
-        return res.status(200).send({ msg: "Logged out successfully" });
-    });
+    const response = await removeUserfromSession(req, res);
+    if (!response) {
+        return res.status(500).send({ msg: "Internal Server Error" })
+    }
+    return res.status(200).send({ msg: "Logged out successfully" });
 });
 
 app.listen(port, () => {
