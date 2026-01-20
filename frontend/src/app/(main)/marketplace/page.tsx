@@ -16,7 +16,7 @@ export default async function products(){
 
     const response = await axios({
         method : "GET",
-        url : "http://localhost:4000/marketplace",
+        url : "http://localhost:4000/api/marketplace/",
     })
 
    

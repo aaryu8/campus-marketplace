@@ -43,9 +43,9 @@ export async function createSession( user : UserSession , res : Response){
 //this function auto checks if cookie and redis client both match or not 
 export async function getUserfromSession(req : Request){
   const sessionId = req.cookies.session_id;
-  console.log("this is the session ID : " + sessionId);
+ 
   const rawUser = await redisClient.get(`session:${sessionId}`);
-  console.log(rawUser);
+  
   const  {success , data : user } = sessionSchema.safeParse(rawUser);
   //user is renaming the data object 
   return success ? user : null 
