@@ -9,7 +9,7 @@ export default async function Home() {
   try {
     const cookieStore = await cookies();
     const cookieString = cookieStore.toString();
-    const response = await axios.get("http://localhost:4000/me", {
+    const response = await axios.get("http://localhost:4000/api/auth/me", {
       withCredentials: true,
       headers : {
         Cookie : cookieString

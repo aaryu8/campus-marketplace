@@ -10,8 +10,6 @@ export const ImageListing: React.FC<ImageListingProps> = ({
   src, 
 }) => {
 
-  console.log(src);
-
   return (
     <div className="relative  max-full h-full overflow-hidden bg-black">
       

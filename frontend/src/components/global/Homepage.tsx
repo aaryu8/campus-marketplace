@@ -23,7 +23,7 @@ const Homepage = async ({userName , userEmail} : HomepageProps) => {
 
    const response = await axios({
         method : "GET",
-        url : "http://localhost:4000/marketplace",
+        url : "http://localhost:4000/api/marketplace/",
     })
 
     return (
@@ -112,7 +112,7 @@ const Homepage = async ({userName , userEmail} : HomepageProps) => {
             <div className="flex flex-row mx-auto max-w-7xl py-16">
               <div className="max-w-full px-20">
                 
-
+                  
 
 
 
