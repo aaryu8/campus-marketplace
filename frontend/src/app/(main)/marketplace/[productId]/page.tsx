@@ -19,7 +19,7 @@ const ProductBuying = async ({params} : Props) => {
       // you're making a req from server , they don't have cookies browser has them so syou explicitly get it and sent it
     const cookieStore = await cookies(); 
     const sessionCookie = cookieStore.get('session_id');
-    let a = true;
+    let isAuthenticated = true;
 
     try {
         
@@ -41,12 +41,12 @@ const ProductBuying = async ({params} : Props) => {
                     Cookie : `session_id=${sessionCookie?.value}`
                 }
             })
-
+            
             buyerId = buyerInfo.data.user.id;
 
         } catch (error){
             console.log("NOT LOGGED IN FOR PRODUCT ID");
-            a = false;
+            isAuthenticated = false;
         } 
 
         
@@ -96,8 +96,19 @@ const ProductBuying = async ({params} : Props) => {
                         <p className="text-xl">${price}</p>
                         <p className="text-gray-500 text-[16px] font-normal">Listed a week ago in Newardk , CA</p>
                         {/* Your product details here */}
-                        {a ? <ButtonsComponent buyerId={buyerId} sellerId={sellerId}/> : <>hahahah</>}
-                        
+                        {isAuthenticated ? (
+                            <ButtonsComponent
+                                buyerId={buyerId}
+                                sellerId={sellerId}
+                                productId={productId} // ✅ Pass productId
+                            />
+                        ) : (
+                            <div className="mt-4 p-4 bg-gray-100 rounded-md text-center">
+                                <p className="text-sm text-gray-600">
+                                    Please login to message the seller
+                                </p>
+                            </div>
+                        )}                        
 
                         <div className="h-0.5"></div>
                         <hr/>
