@@ -52,7 +52,7 @@ export function handleChatSockets(io: Server) {
                     orderBy: { createdAt: 'asc' },
                     take: 100
                 });
-
+                //asc mean oldest to newset . matlab uss order mai basaed on createdAt order karna msges ko
                 socket.emit('chatHistory', messages);
 
             } catch (error) {
@@ -98,6 +98,22 @@ export function handleChatSockets(io: Server) {
                         }
                     }
                 });
+
+                
+                // include basically tells k banne k baad sender ka info bhi attach karke dena iss object mai , we can use this info in the backend
+                //{
+                //   id: "m3",
+                //   text: "Hey",
+                //   senderId: "u1",
+
+                //   // 👇 this part comes from `include`
+                //   sender: {
+                //     id: "u1",
+                //     name: "Alice"
+                //   }
+                // }
+                // aise hum conversation ka bhi jod sakte they but nahi chahiye abhi
+
 
                 // Update conversation timestamp
                 await prisma.conversation.update({

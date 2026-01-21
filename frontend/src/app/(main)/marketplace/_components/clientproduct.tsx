@@ -30,6 +30,8 @@ export const ButtonsComponent = ({ buyerId, sellerId, productId }: ButtonsCompon
         try {
             setLoading(true);
 
+            if(buyerId === sellerId) return;
+
             // Call backend to create/get chat ID
             const res = await axios({
                 method: "post",

@@ -39,62 +39,49 @@ export default function ChatPage({params} : Props) {
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    let chatInfo;
 
     // Get current user and conversation info
     useEffect(() => {
+        if (!chatId) return; // ✅ INDUSTRY GUARD
+        
         const fetchData = async () => {
-            try {
-                // Get current user
-                console.log("HIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
+        try {
+            console.log("HIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
 
-                const userRes = await axios.get('http://localhost:4000/api/auth/me', {
-                    withCredentials: true
-                });
+            const userRes = await axios.get('http://localhost:4000/api/auth/me', {
+                withCredentials: true
+            });
 
-                if(!userRes.data.LoggedIn){console.error("NOT LOGGED IN")}
+            const userId = userRes.data.user.id;
+            const userName = userRes.data.user.name;
 
-                const userId = userRes.data.user.id;
-                const userName = userRes.data.user.name;
+            setCurrentUserId(userId);
+            setCurrentUserName(userName);
 
-                setCurrentUserId(userId);
-                setCurrentUserName(userName);
+            console.log(`LALALLALALALALALALLALALALALALALLA`);
+            console.log(userRes.data);
 
-                console.log(`LALALLALALALALALALLALALALALALALLA`);
-                console.log(userRes.data);
+            const convRes = await axios.get(
+                `http://localhost:4000/api/chat/conversation/${chatId}`,
+                { withCredentials: true }
+            );
 
-                // Get conversation details
-                const convRes = await axios.get(
-                    `http://localhost:4000/api/chat/conversation/${chatId}`,
-                    { withCredentials: true }
-                );
+            chatInfo = convRes.data.conversation;
 
-                if (!convRes.data.status) {
-                    alert('Chat not found');
-                    router.push('/');
-                    return;
-                }
+            {chatInfo.buyerId === userId ? setOtherUserName(chatInfo.seller.name) : setOtherUserName(chatInfo.buyer.name) }
 
-                const conversation = convRes.data.conversation;
-
-                // Determine who the "other" user is
-                const otherUser = conversation.buyerId === userId
-                    ? conversation.seller
-                    : conversation.buyer;
-
-                setOtherUserName(otherUser.name);
-                setProductTitle(conversation.product.title);
-                setLoading(false);
+            setLoading(false);
 
             } catch (error) {
-                console.log("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOO IT FAIILED")
                 console.error('Error fetching data:', error);
-                alert('Failed to load chat. Please login.');
                 router.push('/signin');
             }
-        };
+            };
 
-        fetchData();
+            fetchData();
     }, [chatId, router]);
+
 
     // Connect to WebSocket
     useEffect(() => {
@@ -102,52 +89,69 @@ export default function ChatPage({params} : Props) {
 
         const newSocket = io('http://localhost:4000');
         setSocket(newSocket);
-
+        // on connect hi baake events emit honge
         newSocket.on('connect', () => {
             console.log('Connected to chat server');
             newSocket.emit('joinChat', { chatId, userId: currentUserId });
+                
+            newSocket.on('chatHistory', (history: ChatMessage[]) => {
+                setMessages(history);
+                scrollToBottom();
+            });
+
+            newSocket.on('newMessage', (message: ChatMessage) => {
+                setMessages((prev) => [...prev, message]);
+                scrollToBottom();
+            });
+
+            newSocket.on('userTyping', () => {
+                setIsTyping(true);
+            });
+
+            newSocket.on('userStoppedTyping', () => {
+                setIsTyping(false);
+            });
+
+            newSocket.on('error', (error: { message: string }) => {
+                console.error('Socket error:', error);
+                alert(error.message);
+            });
         });
 
-        newSocket.on('chatHistory', (history: ChatMessage[]) => {
-            setMessages(history);
-            scrollToBottom();
-        });
-
-        newSocket.on('newMessage', (message: ChatMessage) => {
-            setMessages((prev) => [...prev, message]);
-            scrollToBottom();
-        });
-
-        newSocket.on('userTyping', () => {
-            setIsTyping(true);
-        });
-
-        newSocket.on('userStoppedTyping', () => {
-            setIsTyping(false);
-        });
-
-        newSocket.on('error', (error: { message: string }) => {
-            console.error('Socket error:', error);
-            alert(error.message);
-        });
 
         return () => {
+            newSocket.off('joinChat');
+            newSocket.off('chatHistory');
+            newSocket.off('newMessage');
+            newSocket.off('userTyping');
+            newSocket.off('userStoppedTyping');
+            newSocket.off('error');
             newSocket.disconnect();
         };
     }, [chatId, currentUserId]);
 
-    // Handle typing indicator
-    useEffect(() => {
-        if (!socket || !text) return;
 
+
+
+
+
+
+    // Handle typing indicator
+   useEffect(() => {
+    if (!socket) return;
+
+    if (text) {
+        // User is typing, emit typing
         socket.emit('typing', {
             chatId,
             userId: currentUserId,
             userName: currentUserName
         });
 
+        // Clear old timer if exists
         if (timerRef.current) clearTimeout(timerRef.current);
 
+        // Set a new timer to stop typing after 1s of inactivity
         timerRef.current = setTimeout(() => {
             socket.emit('stopTyping', {
                 chatId,
@@ -155,17 +159,33 @@ export default function ChatPage({params} : Props) {
                 userName: currentUserName
             });
         }, 1000);
+    } else {
+        // text is empty, user stopped typing immediately
+        socket.emit('stopTyping', {
+            chatId,
+            userId: currentUserId,
+            userName: currentUserName
+        });
 
-        return () => {
-            if (timerRef.current) clearTimeout(timerRef.current);
-        };
-    }, [text, socket, chatId, currentUserId, currentUserName]);
+        // Clear timer just in case
+        if (timerRef.current) clearTimeout(timerRef.current);
+    }
+
+    // Cleanup when component unmounts
+    return () => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+    };
+}, [text, socket, chatId, currentUserId, currentUserName]);
+
+
 
     const scrollToBottom = () => {
         setTimeout(() => {
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }, 100);
     };
+
+
 
     const sendMessage = () => {
         if (!text.trim() || !socket) return;
@@ -179,6 +199,8 @@ export default function ChatPage({params} : Props) {
         setText('');
     };
 
+
+
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -186,12 +208,19 @@ export default function ChatPage({params} : Props) {
         }
     };
 
+
+
+
     function formatTime(date: Date) {
         const d = new Date(date);
         const hh = String(d.getHours()).padStart(2, '0');
         const mm = String(d.getMinutes()).padStart(2, '0');
         return `${hh}:${mm}`;
     }
+
+
+
+
 
     if (loading) {
         return (
