@@ -9,6 +9,8 @@ export async function createListingHandler(req: Request, res: Response) {
         const userInfo = res.locals.user;
         const rawData = req.body;
 
+        console.log(`Here is the information regarding user :- ${userInfo}`);
+
         const { success, data } = productSchema.safeParse(rawData);
         if (!success) {
             return res.status(400).send({ msg: "Invalid data format" });

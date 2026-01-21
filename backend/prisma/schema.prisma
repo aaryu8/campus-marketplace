@@ -16,29 +16,71 @@ generator client {
 
 //campus bhi add karna hai 
 //location
-
 model User {
-  id String @id @default(uuid())
-  name String 
-  email String @unique
-  password String
-  salt String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  products Product[]
+  id                  String         @id @default(uuid())
+  name                String 
+  email               String         @unique
+  password            String
+  salt                String
+  createdAt           DateTime       @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  
+  // Relations
+  products            Product[]
+  sentMessages        Message[]
+  buyerConversations  Conversation[] @relation("Buyer")
+  sellerConversations Conversation[] @relation("Seller")
 }
 
-//use uuid instead of cuid it looks better
 model Product {
-  id String @id @default(cuid())
-  title String 
-  price Int
-  description String
-  rating Float @default(0)
-  category String
-  condition String?
-  image String[]
-  createdAt DateTime @default(now())
-  owner User @relation(fields: [ownerId] , references: [id])
-  ownerId String
+  id            String         @id @default(cuid())
+  title         String 
+  price         Int
+  description   String         @db.Text
+  rating        Float          @default(0)
+  category      String
+  condition     String?
+  image         String[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+  
+  // Relations
+  owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId       String
+  conversations Conversation[]
+
+  @@index([ownerId])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model Conversation {
+  id        String    @id @default(uuid())
+  productId String
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  buyerId   String
+  buyer     User      @relation("Buyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  sellerId  String
+  seller    User      @relation("Seller", fields: [sellerId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([productId, buyerId, sellerId])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([productId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  text           String       @db.Text
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
 }
