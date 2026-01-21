@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { v5 as uuidv5 } from 'uuid';
 import { prisma } from '../db.js';
+import { requireAuth } from '../middlewarecheck.js';
 
 const router = Router();
 
@@ -92,27 +93,17 @@ router.get('/conversation/:chatId', async (req: Request, res: Response) => {
         console.log(`HERE COMES TO CHAT ID IN TEH CONVERSATION ROUTE${chatId}`)
         const conversation = await prisma.conversation.findUnique({
             where: { id: chatId },
-            include: {
-                product: {
-                    select: {
-                        id: true,
-                        title: true,
-                        image: true,
-                        price: true
+            select : {
+                buyerId : true,
+                sellerId : true,
+                buyer : {
+                    select : {
+                        name : true
                     }
-                },
-                buyer: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
-                    }
-                },
-                seller: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
+                } , 
+                seller : {
+                    select : {
+                        name : true
                     }
                 }
             }
@@ -139,4 +130,76 @@ router.get('/conversation/:chatId', async (req: Request, res: Response) => {
     }
 });
 
+
+
+router.get('/inbox' , requireAuth , async (req : Request , res : Response) => {
+    try {
+        
+        const user = res.locals.user;
+        const userId = user.id;
+
+        try {
+
+            const conversations = await prisma.conversation.findMany({
+                where: {
+                    OR: [
+                    { buyerId: userId },
+                    { sellerId: userId }
+                    ]
+                },
+                include: {
+                    buyer: { select: { id: true, name: true } },
+                    seller: { select: { id: true, name: true } },
+                    messages: {
+                        orderBy: { createdAt: 'desc' }, 
+                        take : 1,
+                        select: {
+                            text : true,
+                            sender : {
+                                select : {
+                                    name : true
+                                }
+                            },
+                            createdAt : true
+                         }
+                    },
+                    product: { select: { id : true , title : true } } // optional, if you want product info
+                },
+                orderBy: { createdAt: 'desc' } // newest conversations first
+                });
+
+
+            const userConversations = conversations.map(conv => {
+                const otherUser = conv.buyerId == userId ? conv.seller : conv.buyer;
+
+                return {
+                    chatId : conv.id,
+                    product : conv.product,
+                    otherUser ,
+                    messages : conv.messages,
+                }
+            })
+
+
+
+            return res.status(200).send({
+                status : true,
+                data : userConversations      
+            })
+
+        } catch (error){
+            console.error(error);
+            console.log("Error fetching msges");
+            return res.status(400).send({
+                status : false
+            })
+        }
+        
+    } catch(error) {
+        console.log(`Error Occurred : ${error}`);
+        return res.status(400).send({
+            status : false
+        })
+    }
+})
 export default router;
