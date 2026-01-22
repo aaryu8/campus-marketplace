@@ -118,7 +118,6 @@ export default function ChatPage({params} : Props) {
             });
         });
 
-
         return () => {
             newSocket.off('joinChat');
             newSocket.off('chatHistory');

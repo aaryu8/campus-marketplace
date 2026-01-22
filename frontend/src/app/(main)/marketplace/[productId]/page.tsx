@@ -49,7 +49,8 @@ const ProductBuying = async ({params} : Props) => {
             isAuthenticated = false;
         } 
 
-        
+// fix prodcutID , 
+// fixed it         
 //    Inside [ProductId]
 // [0] {
 // [0]   productInfo: {
