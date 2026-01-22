@@ -13,9 +13,10 @@ export default async function CurvedContainer({ children }: { children: React.Re
             overflow-auto
         "
         >
-        <div className="p-6 font-extrabold text-[20px] sticky">
-                    Messages 
-        </div> 
+        <div className="p-6 font-extrabold text-[20px] sticky top-0 backdrop-blur-lg bg-white/70">
+            Messages
+        </div>
+
         <Separator />
         {children}
     </div>
