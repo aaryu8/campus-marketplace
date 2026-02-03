@@ -41,7 +41,7 @@ const ProductBuying = async ({params} : Props) => {
                     Cookie : `session_id=${sessionCookie?.value}`
                 }
             })
-            
+              
             buyerId = buyerInfo.data.user.id;
 
         } catch (error){
