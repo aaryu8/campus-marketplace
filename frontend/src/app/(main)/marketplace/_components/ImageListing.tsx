@@ -1,47 +1,37 @@
 import Image from "next/image";
 import React from "react";
+import s from "./product.module.css";
 
 interface ImageListingProps {
-    src: string;
-    alt?: string;
+  src: string;
+  alt?: string;
 }
 
-export const ImageListing: React.FC<ImageListingProps> = ({
-  src, 
-}) => {
-
+export const ImageListing: React.FC<ImageListingProps> = ({ src, alt }) => {
   return (
-    <div className="relative  max-full h-full overflow-hidden bg-black">
-      
-      {/* Blurred background layer */}
-      <div className="absolute inset-0">
-        <Image
-          src={src}
-          alt={src}
-          fill
-          className="object-cover blur-lg scale-110"
-          priority
-        />
-      </div>
+    <div className={s.imageStage}>
+      {/* Blurred background */}
+      <div
+        className={s.imageBg}
+        style={{ backgroundImage: `url(${src})` }}
+      />
 
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/25" />
+      {/* Gradient overlay */}
+      <div className={s.imageOverlay} />
 
-      {/* Main image - NO top padding, only side padding */}
-      <div className="relative w-full h-full flex items-start justify-center pt-0 pb-12 px-30">
-        <div className="relative w-full h-full">
+      {/* Main image */}
+      <div className={s.imageMain}>
+        <div style={{ position: "relative", width: "100%", height: "100%" }}>
           <Image
             src={src}
-            alt={src}
+            alt={alt ?? "Product image"}
             fill
-            className="object-contain"
+            className="object-contain drop-shadow-2xl"
             priority
+            sizes="(max-width: 820px) 100vw, 60vw"
           />
-          
-        
         </div>
       </div>
-
     </div>
   );
 };

@@ -1,140 +1,202 @@
-import { ImageListing } from "../_components/ImageListing"
-import { Bookmark } from 'lucide-react';
-import { use } from "react"
-import { Product } from "@/components/constants";
-import { MapsandChatbot , ButtonsComponent , DescriptionComponent } from "../_components/clientproduct";
 import axios from "axios";
 import { cookies } from "next/headers";
+import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
+import { ImageListing } from "../_components/ImageListing";
+import {
+  MapsandChatbot,
+  ButtonsComponent,
+  DescriptionComponent,
+} from "../_components/clientproduct";
+import s from "../_components/product.module.css";
 
 type Props = {
-    params : {
-        productId : string
-    }
+  params: { productId: string };
+};
+
+// ─── Condition badge colour ───────────────────────────────────────────────────
+function conditionClass(condition: string | null) {
+  if (!condition) return s.badgeGray;
+  const c = condition.toLowerCase();
+  if (c === "new") return s.badgeGreen;
+  if (c === "like new" || c === "excellent") return s.badgeGreen;
+  if (c === "good") return s.badgeAmber;
+  return s.badgeGray;
 }
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
+const ProductBuying = async ({ params }: Props) => {
+  const { productId } = await params;
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("session_id");
 
-const ProductBuying = async ({params} : Props) => {
-    
-    const {productId} = params;
-      // you're making a req from server , they don't have cookies browser has them so syou explicitly get it and sent it
-    const cookieStore = await cookies(); 
-    const sessionCookie = cookieStore.get('session_id');
-    let isAuthenticated = true;
+  let isAuthenticated = true;
+  let buyerId: string | undefined;
 
-    try {
-        
-        const response = await axios({
-            method : "GET",
-            url : `http://localhost:4000/api/marketplace/${productId}`,
-            headers : {
-                Cookie : `session_id=${sessionCookie?.value}`
-            }
-        })
+  // ── Fetch product ──────────────────────────────────────────────────────────
+  let productData: {
+    title: string;
+    price: number;
+    description: string;
+    rating: number;
+    category: string;
+    condition: string | null;
+    image: string[];
+    createdAt: string;
+    owner: { id: string; name: string; email: string };
+  };
 
-        let buyerId;
+  try {
+    const response = await axios({
+      method: "GET",
+      url: `http://localhost:4000/api/marketplace/${productId}`,
+      headers: { Cookie: `session_id=${sessionCookie?.value}` },
+    });
 
-        try {
-            const buyerInfo = await axios({
-                method : "GET",
-                url : "http://localhost:4000/api/auth/me",
-                headers : {
-                    Cookie : `session_id=${sessionCookie?.value}`
-                }
-            })
-              
-            buyerId = buyerInfo.data.user.id;
-
-        } catch (error){
-            console.log("NOT LOGGED IN FOR PRODUCT ID");
-            isAuthenticated = false;
-        } 
-
-// fix prodcutID , 
-// fixed it         
-//    Inside [ProductId]
-// [0] {
-// [0]   productInfo: {
-// [0]     title: 'lanscape painting',
-// [0]     price: 400,
-// [0]     description: 'a beautiful wall painting , contact no : XXXXXXXXX',
-// [0]     rating: 0,
-// [0]     category: 'general',
-// [0]     condition: null,
-// [0]     image: [
-// [0]       'https://oncagxvtwnskgijucota.supabase.co/storage/v1/object/public/DormDeal-item-listing/products/1767590921372_vvu67p.jpg'
-// [0]     ],
-// [0]     createdAt: '2026-01-05T05:28:44.501Z',
-// [0]     owner: { name: 'aaditya', email: 'aaditya@gmail.com' }
-// [0]   }
-// [0] }
-
-        if(!response.data.taskStatus){
-            alert('Cannot fetch product Information at the moment');
-        }
-
-
-        
-        const {owner ,title , price , description , rating , condition , image  } = response.data.data.productInfo;
-        const sellerId = response.data.data.productInfo.owner.id;
-    
-        return (
-        <div className="min-h-screen   bg-gray-900">
-            {/* Main flex container - full viewport height */}
-            <div className="flex flex-row w-full h-screen">
-                
-                {/* LEFT: Image Gallery (75% width) */}
-                <div className="w-3/4 h-full bg-black">
-                    {image && (
-                        <ImageListing src={image[0]}/>
-                    )}
-
-                </div>
-                
-                {/* RIGHT: Product Details (25% width) */}
-                <div className="w-1/4 h-full bg-white overflow-y-auto">
-                    <div className=" pl-2 pr-2  pt-3">
-                        <h1 className="text-2xl font-bold">{title}</h1>
-                        <p className="text-xl">${price}</p>
-                        <p className="text-gray-500 text-[16px] font-normal">Listed a week ago in Newardk , CA</p>
-                        {/* Your product details here */}
-                        {isAuthenticated ? (
-                            <ButtonsComponent
-                                buyerId={buyerId}
-                                sellerId={sellerId}
-                                productId={productId} // ✅ Pass productId
-                            />
-                        ) : (
-                            <div className="mt-4 p-4 bg-gray-100 rounded-md text-center">
-                                <p className="text-sm text-gray-600">
-                                    Please login to message the seller
-                                </p>
-                            </div>
-                        )}                        
-
-                        <div className="h-0.5"></div>
-                        <hr/>
-                        
-                        <DescriptionComponent description={description}/>
-                        
-                        <MapsandChatbot />
-
-                    </div>
-                </div>
-                
-            </div>
+    if (!response.data.taskStatus) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-[#faf8f4] text-gray-500 text-sm">
+          Could not load this listing.
         </div>
-    )
-    } catch (error){
-        console.log(error)
-
-        return (
-            <div>Can't fetch anything at the moment</div>
-        )
+      );
     }
-    
 
+    productData = response.data.data.productInfo;
+  } catch {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#faf8f4] text-gray-500 text-sm">
+        Something went wrong. Please try again.
+      </div>
+    );
+  }
 
-    
-}
+  // ── Fetch current user ─────────────────────────────────────────────────────
+  try {
+    const me = await axios({
+      method: "GET",
+      url: "http://localhost:4000/api/auth/me",
+      headers: { Cookie: `session_id=${sessionCookie?.value}` },
+    });
+    buyerId = me.data.user.id;
+  } catch {
+    isAuthenticated = false;
+  }
 
-export default ProductBuying
+  const {
+    title,
+    price,
+    description,
+    condition,
+    category,
+    image,
+    createdAt,
+    owner,
+  } = productData;
+
+  const sellerId = owner.id;
+  const sellerInitial = owner.name.charAt(0).toUpperCase();
+  const postedAgo = formatDistanceToNow(new Date(createdAt), {
+    addSuffix: true,
+  });
+
+  return (
+    <div className={s.page}>
+
+      {/* ── LEFT: image ─────────────────────────────────────────── */}
+      <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
+        {/* Top-left nav overlay */}
+        <div className={s.imageNav}>
+          <Link href="/marketplace" className={s.backBtn}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2.5">
+              <path d="M19 12H5M12 5l-7 7 7 7" />
+            </svg>
+            Back
+          </Link>
+          <Link href="/" className={s.logoChip}>
+            <span className={s.logoChipDot}>D</span>
+            DormDeal
+          </Link>
+        </div>
+
+        {image?.[0] && <ImageListing src={image[0]} alt={title} />}
+      </div>
+
+      {/* ── RIGHT: detail panel ──────────────────────────────────── */}
+      <aside className={s.panel}>
+        <div className={s.panelInner}>
+
+          {/* Badges */}
+          <div className={s.badgeRow}>
+            {category && (
+              <span className={`${s.badge} ${s.badgePurple}`}>
+                {category}
+              </span>
+            )}
+            {condition && (
+              <span className={`${s.badge} ${conditionClass(condition)}`}>
+                {condition}
+              </span>
+            )}
+          </div>
+
+          {/* Title */}
+          <h1 className={s.title}>{title}</h1>
+
+          {/* Price */}
+          <div className={s.priceRow}>
+            <span className={s.priceCurrency}>₹</span>
+            <span className={s.price}>{price.toLocaleString("en-IN")}</span>
+          </div>
+
+          {/* Posted */}
+          <p className={s.postedDate}>Listed {postedAgo}</p>
+
+          <div className={s.divider} />
+
+          {/* Seller */}
+          <div className={s.sellerCard}>
+            <div className={s.sellerAvatar}>{sellerInitial}</div>
+            <div className={s.sellerInfo}>
+              <p className={s.sellerLabel}>Seller</p>
+              <p className={s.sellerName}>{owner.name}</p>
+              <p className={s.sellerEmail}>{owner.email}</p>
+            </div>
+          </div>
+
+          {/* Actions */}
+          {isAuthenticated && buyerId ? (
+            <ButtonsComponent
+              buyerId={buyerId}
+              sellerId={sellerId}
+              productId={productId}
+            />
+          ) : (
+            <div className={s.authNotice}>
+              <p className={s.authNoticeText}>
+                Sign in to message the seller or save this listing.
+              </p>
+              <Link href="/sign-in" className={s.authNoticeLink}>
+                Sign in →
+              </Link>
+            </div>
+          )}
+
+          <div className={s.divider} />
+
+          {/* Description */}
+          <DescriptionComponent description={description} />
+
+          <div className={s.divider} />
+
+          {/* Maps */}
+          <p className={s.sectionLabel}>Meet-up Location</p>
+          <MapsandChatbot />
+
+        </div>
+      </aside>
+    </div>
+  );
+};
+
+export default ProductBuying;

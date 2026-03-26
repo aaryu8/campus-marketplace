@@ -1,132 +1,132 @@
-"use client"
+"use client";
 
 import axios from "axios";
-import { Bookmark } from "lucide-react";
+import { Bookmark, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import s from "./product.module.css";
 
-export const MapsandChatbot = () => {
-    return (
-        <div className="bg-yellow-400 pt-52 mt-3">
-            <div>Here Google maps will be integrated</div>  
-        </div>
-    )
-};
-
-
+// ─── Message + Save + Share buttons ──────────────────────────────────────────
 
 interface ButtonsComponentProps {
-    buyerId : string,
-    sellerId : string,
-    productId : string
+  buyerId: string;
+  sellerId: string;
+  productId: string;
 }
 
+export const ButtonsComponent = ({
+  buyerId,
+  sellerId,
+  productId,
+}: ButtonsComponentProps) => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
-export const ButtonsComponent = ({ buyerId, sellerId, productId }: ButtonsComponentProps) => {
-    const router = useRouter();
-    const [loading, setLoading] = useState(false);
+  const isSameUser = buyerId === sellerId;
 
-    const onclickHandler = async () => {
-        try {
-            setLoading(true);
+  const onMessageClick = async () => {
+    if (isSameUser) return;
+    try {
+      setLoading(true);
+      const res = await axios({
+        method: "post",
+        url: "http://localhost:4000/api/chat/createId",
+        withCredentials: true,
+        data: { buyerId, sellerId, productId },
+      });
 
-            if(buyerId === sellerId) return;
+      if (!res.data.status) {
+        alert("Could not start chat.");
+        return;
+      }
 
-            // Call backend to create/get chat ID
-            const res = await axios({
-                method: "post",
-                url: "http://localhost:4000/api/chat/createId", // ✅ Fixed URL
-                withCredentials: true,
-                data: {
-                    buyerId,
-                    sellerId,
-                    productId // ✅ Include productId
-                }
-            });
+      router.push(`/chat/${res.data.data}`);
+    } catch {
+      alert("Could not start chat.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            if (!res.data.status) {
-                console.error('Failed to create chat');
-                alert('Could not start chat.');
-                return;
-            }
+  return (
+    <div className={s.actionsRow}>
+      {/* Primary: Message */}
+      {!isSameUser && (
+        <button
+          type="button"
+          onClick={onMessageClick}
+          disabled={loading}
+          className={s.btnPrimary}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+          </svg>
+          {loading ? "Opening chat…" : "Message Seller"}
+        </button>
+      )}
 
-            const chatId = res.data.data; // ✅ Fixed: directly access data property
-
-            // Navigate to chat page
-            router.push(`/chat/${chatId}`);
-
-        } catch (err) {
-            console.error(err);
-            alert('Could not start chat.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="mt-2 flex justify-between w-full gap-2">
-            <button
-                type="button"
-                onClick={onclickHandler}
-                disabled={loading}
-                className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#050505] bg-[#d8dadf] rounded-md border border-transparent hover:bg-[#cbcfd7] disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Message user"
-            >
-                <img src="/messenger.png" width={20} height={20} alt="Messenger" />
-                <span>{loading ? 'Loading...' : 'Message'}</span>
-            </button>
-
-            <button
-                type="button"
-                className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#050505] bg-[#d8dadf] rounded-md border border-transparent hover:bg-[#cbcfd7]"
-            >
-                <Bookmark />
-                <span>Save</span>
-            </button>
-
-            <button
-                type="button"
-                className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#050505] bg-[#d8dadf] rounded-md border border-transparent hover:bg-[#cbcfd7]"
-            >
-                <img src="/send.png" width={20} height={20} alt="Share" />
-                <span>Share</span>
-            </button>
+      {isSameUser && (
+        <div className={s.authNotice} style={{ textAlign: "center" }}>
+          <p style={{ fontSize: 13, color: "#6d28d9", fontWeight: 500 }}>
+            This is your listing.
+          </p>
         </div>
-    );
+      )}
+
+      {/* Secondary row: Save + Share */}
+      <div className={s.btnSecondaryRow}>
+        <button type="button" className={s.btnSecondary}>
+          <Bookmark size={15} />
+          Save
+        </button>
+        <button type="button" className={s.btnSecondary}>
+          <Share2 size={15} />
+          Share
+        </button>
+      </div>
+    </div>
+  );
 };
 
+// ─── Description with expand/collapse ────────────────────────────────────────
 
+export const DescriptionComponent = ({
+  description,
+}: {
+  description: string;
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  const WORD_LIMIT = 30;
 
+  const words = description.trim().split(/\s+/);
+  const isLong = words.length > WORD_LIMIT;
+  const preview = isLong
+    ? words.slice(0, WORD_LIMIT).join(" ") + "…"
+    : description;
 
-export const DescriptionComponent = ({ description } : { description : string} ) => {
-    
-    const [expanded, setExpanded] = useState(false);
+  return (
+    <div>
+      <p className={s.sectionLabel}>Seller's Description</p>
+      <p className={s.descriptionText}>{expanded ? description : preview}</p>
+      {isLong && (
+        <button
+          className={s.seeMoreBtn}
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? "See less ↑" : "See more ↓"}
+        </button>
+      )}
+    </div>
+  );
+};
 
-    function cuttingdescription(text : string , maxwords : number ){
-        const words = text.trim().split(/\s+/);
+// ─── Maps placeholder ─────────────────────────────────────────────────────────
 
-        if(words.length <= maxwords){
-            return text;
-        }
-
-        const Truncatedtext = words.splice(0, maxwords).join(" ");
-        return Truncatedtext;
-    }
-    
-    return (
-        <div className="mt-2">
-            <p className="text-[21px] font-semibold">Seller's Description</p>
-            <p className="text-[18px]">
-                    {expanded ?  description : cuttingdescription(description, 3)}
-            </p>
-            <button
-                className="text-[18px] font-semibold"
-                onClick={() => {
-                    setExpanded(!expanded);
-                }}
-            >
-                {expanded ? "... See Less" : "... See More"}
-            </button>
-        </div>
-    ) 
-}
+export const MapsandChatbot = () => {
+  return (
+    <div className={s.mapsPlaceholder}>
+      <span className={s.mapsIcon}>📍</span>
+      <span>Google Maps · Coming soon</span>
+    </div>
+  );
+};
