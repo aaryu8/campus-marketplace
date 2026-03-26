@@ -130,6 +130,32 @@ router.get('/conversation/:chatId', async (req: Request, res: Response) => {
     }
 });
 
+router.delete('/conversation/:chatId', requireAuth, async (req, res) => {
+    
+  
+    try {
+    const { chatId } = req.params;
+    const userId = res.locals.user.id;
+
+    // Verify user is part of this conversation
+    if (!chatId) {
+        return res.status(400).send({ status: false, msg: "Chat ID is required" });
+    }
+
+    const conv = await prisma.conversation.findFirst({
+      where: { id: chatId, OR: [{ buyerId: userId }, { sellerId: userId }] }
+    });
+
+    if (!conv) return res.status(403).send({ status: false, msg: "Not authorized" });
+
+    await prisma.message.deleteMany({ where: { conversationId: chatId } });
+    await prisma.conversation.delete({ where: { id: chatId } });
+
+    return res.status(200).send({ status: true });
+  } catch (err) {
+    return res.status(500).send({ status: false });
+  }
+});
 
 
 router.get('/inbox' , requireAuth , async (req : Request , res : Response) => {

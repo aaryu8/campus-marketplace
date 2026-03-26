@@ -1,24 +1,18 @@
 import { Separator } from "@/components/ui/separator";
+import React from "react"
 
-export default async function CurvedContainer({ children }: { children: React.ReactNode }) {
-   
-    return (
-    <div
-        className="
-            mt-12 ml-12
-            h-[calc(100vh-3rem)]   /* 3rem = 48px */
-            w-[calc(100vw-3rem)]
-            rounded-3xl bg-white border-2
-            
-            overflow-auto
-        "
-        >
-        <div className="p-6 font-extrabold text-[20px] sticky top-0 backdrop-blur-lg bg-white/70">
-            Messages
-        </div>
-
-        <Separator />
-        {children}
-    </div>
-  );
+type Props = {
+    children : React.ReactNode
 }
+const Layout = (props : Props) =>{
+    return (
+        <div className="overflow-y-clip h-screen">
+
+             <Separator />
+             {props.children}
+        </div>
+    )
+}
+
+export default Layout;
+
