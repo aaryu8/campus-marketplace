@@ -32,6 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/chat' , chatWork);
+app.use('/api/dashboard' , )
 
 
 // ✅ WebSocket / Chat

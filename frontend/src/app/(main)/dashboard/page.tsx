@@ -1,5 +1,3 @@
-'use client';
-
 import Link from "next/link";
 import { useState } from "react";
 import { Mountains_of_Christmas } from "next/font/google";
@@ -9,6 +7,8 @@ const moc = Mountains_of_Christmas({
   subsets: ["latin"],
   weight: ["700"],
 });
+import ListingSection  from "./_componenets/filter"
+import axios from "axios";
 
 // ─── Navbar (upgraded: sticky, profile avatar, notification dot) ──────────────
 
@@ -33,7 +33,7 @@ interface Listing {
 // ─── Mock data (replace with real fetch / server component props) ──────────────
 
 const MOCK_USER = {
-  name: " Sharma",
+  name: "Aryan Sharma",
   initials: "AS",
   college: "IIT Delhi · CSE '26",
   joinedAt: "Sep 2023",
@@ -84,7 +84,7 @@ function StatusBadge({ status }: { status: ListingStatus }) {
 
 // ─── Listing Card ─────────────────────────────────────────────────────────────
 
-function ListingCard({ listing }: { listing: Listing }) {
+export function ListingCard({ listing }: { listing: Listing }) {
   return (
     <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-200 group flex flex-col ${listing.status === "sold" ? "opacity-60" : ""}`}>
       {/* Image */}
@@ -151,34 +151,47 @@ function ListingCard({ listing }: { listing: Listing }) {
 
 // ─── Filter Tab ───────────────────────────────────────────────────────────────
 
-function FilterTab({ label, active, onClick, count }: { label: string; active: boolean; onClick: () => void; count?: number }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-        active ? "bg-purple-600 text-white shadow-sm" : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-      }`}
-    >
-      {label}
-      {count !== undefined && (
-        <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${active ? "bg-purple-500 text-white" : "bg-gray-200 text-gray-600"}`}>
-          {count}
-        </span>
-      )}
-    </button>
-  );
-}
 
 // ─── Dashboard Page ───────────────────────────────────────────────────────────
 
-const Dashboard = () => {
-  const [filter, setFilter] = useState<"all" | ListingStatus>("all");
-
-  const filtered = filter === "all" ? MOCK_LISTINGS : MOCK_LISTINGS.filter((l) => l.status === filter);
+const Dashboard = async () => {
 
   const totalViews       = MOCK_LISTINGS.reduce((s, l) => s + l.views, 0);
   const totalConversations = MOCK_LISTINGS.reduce((s, l) => s + l.conversations, 0);
   const activeCount      = MOCK_LISTINGS.filter((l) => l.status === "active").length;
+  //const sessionCookie = cookieStore.get("session_id");
+
+
+  
+
+  // try {
+
+  //    const response = await axios({
+  //     method: "GET",
+  //     url: `http://localhost:4000/api/`,
+  //     headers: { Cookie: `session_id=${sessionCookie?.value}` },
+  //   });
+
+  //   if (!response.data.taskStatus) {
+  //     return (
+  //       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f2f5", color: "#65676b", fontFamily: "Manrope, sans-serif", fontSize: 14 }}>
+  //         Could not load this listing.
+  //       </div>
+  //     );
+  //   }
+
+  //   // page.tsx
+  //   productData = response.data.data.productInfo;
+
+
+  // } catch {
+  //   return (
+  //     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f2f5", color: "#65676b", fontFamily: "Manrope, sans-serif", fontSize: 14 }}>
+  //       Something went wrong. Please try again.
+  //     </div>
+  //   );
+  // }
+
 
   return (
     <div className="min-h-screen bg-[#f8f7f4]">
@@ -251,34 +264,7 @@ const Dashboard = () => {
         </div>
 
         {/* ── Listings Section ─────────────────────────────────────── */}
-        <div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-            <h2 className="text-lg font-bold text-gray-900">My Listings</h2>
-
-            {/* Filter tabs */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
-              <FilterTab label="All"    active={filter === "all"}    onClick={() => setFilter("all")}    count={MOCK_LISTINGS.length} />
-              <FilterTab label="Active" active={filter === "active"} onClick={() => setFilter("active")} count={MOCK_LISTINGS.filter(l => l.status === "active").length} />
-              <FilterTab label="Paused" active={filter === "paused"} onClick={() => setFilter("paused")} />
-              <FilterTab label="Sold"   active={filter === "sold"}   onClick={() => setFilter("sold")} />
-            </div>
-          </div>
-
-          {filtered.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {filtered.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-dashed border-gray-200 py-16 text-center">
-              <p className="text-gray-400 text-sm">No listings in this category.</p>
-              <Link href="/createListing" className="mt-3 inline-block text-sm text-purple-600 font-semibold hover:underline">
-                + Create one
-              </Link>
-            </div>
-          )}
-        </div>
+        <ListingSection listings={MOCK_LISTINGS}></ListingSection>
 
         {/* ── Quick Links ──────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
