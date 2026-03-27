@@ -1,5 +1,5 @@
 import { Router, type NextFunction, type Request, type Response } from 'express';
-import { createListingHandler, getProductsHandler, getProductHandler } from '../actions/marketplaceHandlers.js';
+import { createListingHandler, getProductsHandler, getProductHandler, trackProductView } from '../actions/marketplaceHandlers.js';
 import {requireAuth} from "../middlewarecheck.js"
 
 const router = Router();
@@ -10,5 +10,6 @@ const router = Router();
 router.post("/createListing", requireAuth , createListingHandler);
 router.get("/", getProductsHandler);
 router.get("/:productId", getProductHandler);
+router.post("/:productId/view" , trackProductView);
 
 export default router;

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { ImageSlider, MapsandChatbot, ButtonsComponent, DescriptionComponent } from "../_components/clientproduct";
 import s from "../_components/product.module.css";
+import { TrackView } from "../_components/trackview";
 
 type Props = {
   params: { productId: string };
@@ -29,12 +30,14 @@ const ProductBuying = async ({ params }: Props) => {
     title: string;
     price: number;
     description: string;
+    views: number;      // ← add this
     category: string;
     condition: string | null;
     image: string[];
     createdAt: string;
     owner: { id: string; name: string; email: string; createdAt?: string };
   };
+
 
   try {
     const response = await axios({
@@ -72,7 +75,7 @@ const ProductBuying = async ({ params }: Props) => {
     isAuthenticated = false;
   }
 
-  const { title, price, description, condition, category, image, createdAt, owner } = productData;
+  const { title, price, description, condition, category, image, createdAt, owner  ,views } = productData;
 
   const sellerId = owner.id;
   const sellerInitial = owner.name.charAt(0).toUpperCase();
@@ -101,7 +104,7 @@ const ProductBuying = async ({ params }: Props) => {
 
   return (
     <div className={s.page}>
-
+      <TrackView productId={productId} />
       {/* ── LEFT: image stage ─────────────────────────────── */}
       <div style={{ flex: 1, minWidth: 0, position: "relative", height: "100vh" }}>
         <div className={s.imageNav}>
@@ -144,7 +147,7 @@ const ProductBuying = async ({ params }: Props) => {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
               </svg>
-              {HARDCODED_VIEWS} views
+              {views} views
             </span>
           </div>
 

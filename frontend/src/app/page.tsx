@@ -18,8 +18,7 @@ export default async function Home() {
     user = response.data.user; 
 
   } catch (error) {
-    console.error("Failed to fetch user:", error);
-    // user stays null if API fails or 401
+    
   }
 
   return (

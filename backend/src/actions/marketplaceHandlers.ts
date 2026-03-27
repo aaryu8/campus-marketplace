@@ -60,35 +60,6 @@ export async function getProductHandler(req: Request, res: Response) {
     try {
         const { productId } = req.params;
         
-        const sessionId = await ensureAnonymousSession(req, res);
-
-        const todayKey = `view:${productId}:${new Date().toISOString().slice(0, 10)}`; // Set of sessionIds
-        const counterKey = `view_count:${productId}:${new Date().toISOString().slice(0, 10)}`; // Counter
-
-        // Deduplicate: only count once per session
-        const hasViewed = await redisClient.sismember(todayKey, sessionId);
-
-        // Upstash Redis returns number for sismember: 0 = not exists, 1 = exists
-        if (hasViewed === 0) {
-        // Add sessionId to set
-        await redisClient.sadd(todayKey, sessionId);
-        await redisClient.expire(todayKey, 60 * 60 * 12); // 12 hours, adjustable
-
-        // Increment total views for the period
-        await redisClient.incr(counterKey);
-        await redisClient.expire(counterKey, 60 * 60 * 12);
-        }
-
-        // Safe parsing for viewsToday
-        const redisValue = await redisClient.get(counterKey);
-
-        // TypeScript-safe cast: convert unknown -> string
-        const redisValueStr = typeof redisValue === 'string' ? redisValue : '0';
-        const viewsToday = parseInt(redisValueStr, 10);
-
-        console.log('Views today for product', productId, ':', viewsToday);
-
-
         const productInfo = await prisma.product.findUnique({
             where: { id: productId! },
             select: {
@@ -96,18 +67,18 @@ export async function getProductHandler(req: Request, res: Response) {
                 price: true,
                 description: true,
                 rating: true,
+                views: true,      // ← add this
                 category: true,
                 condition: true,
                 image: true,
                 createdAt: true,
-                // Add createdAt here inside the owner select
-                owner: { 
-                    select: { 
-                        id: true, 
-                        name: true, 
-                        email: true,
-                        createdAt: true // This allows the "Member since" logic to work
-                    } 
+                owner: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    createdAt: true
+                }
                 }
             }
         });
@@ -122,4 +93,44 @@ export async function getProductHandler(req: Request, res: Response) {
         console.error(error);
         return res.status(500).send({ taskStatus: false, msg: "Could Not fetch product information" });
     }
+}
+
+
+// POST /api/marketplace/:productId/view
+export async function trackProductView(req: Request, res: Response) {
+  try {
+    const { productId } = req.params;
+
+    // Read from header — sent by TrackView
+    const sessionId = req.headers['x-session-id'] as string;
+
+    if (!sessionId) {
+      return res.status(400).json({ ok: false, reason: 'no session' });
+    }
+
+    console.log("📍 /view hit — sessionId:", sessionId.slice(0, 20) + "...");
+
+    // In trackProductView on Express
+    const today = new Date().toISOString().slice(0, 10);
+    const todayKey = `view:${productId}:${today}`;
+    const counterKey = `view_count:${productId}:${today}`;
+
+    // SADD returns 1 if the element was NEW, 0 if it already existed
+    // This is atomic — no race condition possible
+    const isNewView = await redisClient.sadd(todayKey, sessionId) as number;
+    await redisClient.expire(todayKey, 60 * 60 * 12);
+
+    if (isNewView === 1) {
+    // Only increment if this sessionId was genuinely new
+    await redisClient.incr(counterKey);
+    await redisClient.expire(counterKey, 60 * 60 * 12);
+    }
+
+    return res.status(200).json({ ok: true, alreadyViewed: isNewView === 0 });
+
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ ok: false });
+  }
 }
