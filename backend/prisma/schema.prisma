@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 datasource db {
   provider = "postgresql"
 }
@@ -12,20 +9,59 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum ProductStatus {
+  active
+  paused
+  sold
+}
+
+// Supported Delhi-area colleges
+enum College {
+  MAIT    // Maharaja Agrasen Institute of Technology
+  DTU    // Delhi Technological University
+  IITD   // Indian Institute of Technology Delhi
+  GGSIPU // Guru Gobind Singh Indraprastha University
+  MSIT   // Maharaja Surajmal Institute of Technology
+  NSUT   // Netaji Subhas University of Technology
+  IIITD  // Indraprastha Institute of Information Technology Delhi
+  BVCOE  // Bharati Vidyapeeth's College of Engineering
+}
 
 
-//campus bhi add karna hai 
-//location
+enum Branch {
+  CSE 
+  IT 
+  ECE
+  EEE 
+  ME 
+  CE
+  BT
+  CHE
+  MAC
+  NotSpecified
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
 model User {
-  id                  String         @id @default(uuid())
-  name                String 
-  email               String         @unique
-  password            String
-  salt                String
-  createdAt           DateTime       @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  totalViews          Int @default(0)
-  
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String
+  salt       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  // Profile fields
+  college    College           // nullable so existing rows don't break
+  branch     Branch?    @default(NotSpecified)        
+  year       Int?        @default(0)    // 1 | 2 | 3 | 4
+
+  // Denormalised counters (updated via Prisma middleware / triggers)
+  totalViews Int @default(0)
+
   // Relations
   products            Product[]
   sentMessages        Message[]
@@ -34,19 +70,19 @@ model User {
 }
 
 model Product {
-  id            String         @id @default(cuid())
-  title         String 
-  price         Int
-  description   String         @db.Text
-  rating        Float          @default(0)
-  category      String
-  condition     String?
-  image         String[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime @default(now()) @updatedAt
+  id          String        @id @default(cuid())
+  title       String
+  price       Int
+  description String        @db.Text
+  rating      Float         @default(0)
+  category    String
+  condition   String?
+  image       String[]
+  status      ProductStatus @default(active)   // ← NEW
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now()) @updatedAt
+  views       Int           @default(0)
 
-  views         Int @default(0)
-  
   // Relations
   owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId       String
@@ -56,6 +92,7 @@ model Product {
   @@index([category])
   @@index([createdAt])
   @@index([views])
+  @@index([status])      // ← index for dashboard filter queries
 }
 
 model Conversation {
@@ -68,7 +105,7 @@ model Conversation {
   seller    User      @relation("Seller", fields: [sellerId], references: [id], onDelete: Cascade)
   messages  Message[]
   createdAt DateTime  @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt DateTime  @default(now()) @updatedAt
 
   @@unique([productId, buyerId, sellerId])
   @@index([buyerId])
@@ -88,3 +125,7 @@ model Message {
   @@index([conversationId, createdAt])
   @@index([senderId])
 }
+
+// ─── Migration note ───────────────────────────────────────────────────────────
+// Run after updating this file:
+//   npx prisma migrate dev --name add_user_profile_product_status

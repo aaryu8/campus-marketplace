@@ -1,39 +1,13 @@
-import { Router, type NextFunction, type Request, type Response } from 'express';
-import {requireAuth} from "../middlewarecheck.js"
-import { prisma } from "../db.js";
+import { Router } from "express";
+import { profileHandler, updateprofileHandler, changePasswordHandler , meHandler } from "../actions/userHandlers.js";
+import { requireAuth } from "../middlewarecheck.js";
 
 const router = Router();
 
+router.get("/me" , requireAuth , meHandler);
+router.get("/profile/me",              requireAuth, profileHandler);
+router.patch("/profile/me",            requireAuth, updateprofileHandler);
+router.post("/change-password", requireAuth, changePasswordHandler);
 
-router.post("/", requireAuth , async (req : Request , res : Response) => {
-    try {
-
-        const userInfo = res.locals.user;
-        const userId = userInfo.userId;
-
-        const user = await prisma.user.findUnique({ 
-            where: { id: userId! }, 
-            select: {
-                name : true,
-                email : true,
-                createdAt : true,
-                totalViews : true,
-                products : true,
-                
-            }
-         });
-
-        if (!user) {
-            return res.status(404).send({ msg: "User not found" });
-        }
-
-
-        return res.status(200).send(user);
-
-
-    } catch {
-
-    }
-});
 
 export default router;

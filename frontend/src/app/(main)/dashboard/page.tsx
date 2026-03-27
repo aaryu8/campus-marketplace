@@ -9,6 +9,7 @@ const moc = Mountains_of_Christmas({
 });
 import ListingSection  from "./_componenets/filter"
 import axios from "axios";
+import { cookies } from "next/headers";
 
 // ─── Navbar (upgraded: sticky, profile avatar, notification dot) ──────────────
 
@@ -154,43 +155,196 @@ export function ListingCard({ listing }: { listing: Listing }) {
 
 // ─── Dashboard Page ───────────────────────────────────────────────────────────
 
+
+
+
+
+
+
+//interface from backend
+// 1. Matches your Prisma Enums
+export type ProductStatus = 'active' | 'paused' | 'sold';
+
+export type College = 
+  | 'MAIT' | 'DTU' | 'IITD' | 'GGSIPU' 
+  | 'MSIT' | 'NSUT' | 'IIITD' | 'BVCOE';
+
+export type Branch = 
+  | 'CSE' | 'IT' | 'ECE' | 'EEE' | 'ME' 
+  | 'CE' | 'BT' | 'CHE' | 'MAC' | 'NotSpecified';
+
+// 2. The Product Shape (as returned by the dashboard query)
+export interface DashboardProduct {
+  id: string;
+  title: string;
+  price: number;
+  status: ProductStatus;
+  views: number;
+  image: string[]; // Array of URLs
+}
+
+// 3. The Main Dashboard Data Structure
+export interface DashboardData {
+  profile: {
+    name: string;
+    email: string;
+    college: College;
+    branch: Branch;
+    year: number;
+    totalViews : number;
+    joined: string; // ISO Date String
+  };
+  stats: {
+    totalViews: number;
+    totalConversations: number;
+    activeListings: number;
+    pausedListings: number;
+    soldItems: number;
+  };
+  items: {
+    active: DashboardProduct[];
+    paused: DashboardProduct[];
+    sold: DashboardProduct[];
+  };
+}
+
+
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short', // "Sept"
+    year: 'numeric', // "2023"
+  }).format(date);
+};
+
+
+
+
 const Dashboard = async () => {
 
   const totalViews       = MOCK_LISTINGS.reduce((s, l) => s + l.views, 0);
   const totalConversations = MOCK_LISTINGS.reduce((s, l) => s + l.conversations, 0);
   const activeCount      = MOCK_LISTINGS.filter((l) => l.status === "active").length;
-  //const sessionCookie = cookieStore.get("session_id");
+  
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("session_id");
+  let dashboardData : DashboardData;
+  try {
+    const response = await axios({
+      method: "GET",
+      url: `http://localhost:4000/api/dashboard/me`,
+      headers: { Cookie: `session_id=${sessionCookie?.value}` },
+    });
 
+    // maybe handle this better with set timeout which ill display this msg and automatically route you to some place 
+    // after  some time
+    if (!response.data.taskStatus) {
+      return (
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f2f5", color: "#65676b", fontFamily: "Manrope, sans-serif", fontSize: 14 }}>
+          Could not load this listing.
+        </div>
+      );
+    }
+
+    dashboardData = response.data;
+
+  } catch(error : any) {
+
+    if(error.response && error.response.status == 401){
+    }
+
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f2f5", color: "#65676b", fontFamily: "Manrope, sans-serif", fontSize: 14 }}>
+        Something went wrong. Please try again.
+      </div>
+    );
+  }
+
+
+  const profile = dashboardData.profile;
+  const stats = dashboardData.stats;
+  const { active , paused , sold  } = dashboardData.items;
 
   
+  const getInitials = (name: string): string => {
+      if (!name) return "";
 
-  // try {
+      const parts = name.trim().split(/\s+/);
+      
+      if (parts.length === 1) {
+        // If only one name: "Aryan" -> "A"
+        return parts[0].charAt(0).toUpperCase();
+      }
 
-  //    const response = await axios({
-  //     method: "GET",
-  //     url: `http://localhost:4000/api/`,
-  //     headers: { Cookie: `session_id=${sessionCookie?.value}` },
-  //   });
+      // If two or more names: "Aryan Kaushik" -> "AK"
+      // We take the first letter of the first part and the first letter of the last part
+      const firstInitial = parts[0].charAt(0);
+      const lastInitial = parts[parts.length - 1].charAt(0);
 
-  //   if (!response.data.taskStatus) {
-  //     return (
-  //       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f2f5", color: "#65676b", fontFamily: "Manrope, sans-serif", fontSize: 14 }}>
-  //         Could not load this listing.
-  //       </div>
-  //     );
-  //   }
+      return (firstInitial + lastInitial).toUpperCase();
+  };
 
-  //   // page.tsx
-  //   productData = response.data.data.productInfo;
+  const initials = getInitials(profile.name);
 
 
-  // } catch {
-  //   return (
-  //     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f2f5", color: "#65676b", fontFamily: "Manrope, sans-serif", fontSize: 14 }}>
-  //       Something went wrong. Please try again.
-  //     </div>
-  //   );
-  // }
+// {
+//   "profile": {
+//     "name": "Aditya Sharma",
+//     "email": "aditya@mait.ac.in",
+//     "college": "MAIT",
+//     "branch": "EEE",
+//     "year": 3,
+//     "joined": "2024-03-15T10:30:00.000Z"
+//   },
+//   "stats": {
+//     "totalViews": 1240,
+//     "totalConversations": 8,
+//     "activeListings": 2,
+//     "pausedListings": 1,
+//     "soldItems": 5
+//   },
+//   "items": {
+//     "active": [
+//       {
+//         "id": "prod_123",
+//         "title": "Engineering Physics Textbook",
+//         "price": 450,
+//         "status": "active",
+//         "views": 45,
+//         "image": ["https://cdn.example.com/book1.jpg"]
+//       },
+//       {
+//         "id": "prod_124",
+//         "title": "Scientific Calculator FX-991EX",
+//         "price": 1100,
+//         "status": "active",
+//         "views": 89,
+//         "image": ["https://cdn.example.com/calc.jpg"]
+//       }
+//     ],
+//     "paused": [
+//       {
+//         "id": "prod_125",
+//         "title": "Lab Coat - Size L",
+//         "price": 200,
+//         "status": "paused",
+//         "views": 12,
+//         "image": ["https://cdn.example.com/coat.jpg"]
+//       }
+//     ],
+//     "sold": [
+//       {
+//         "id": "prod_110",
+//         "title": "Drawing Board",
+//         "price": 300,
+//         "status": "sold",
+//         "views": 150,
+//         "image": ["https://cdn.example.com/board.jpg"]
+//       }
+//     ]
+//   }
+// }
 
 
   return (
@@ -203,7 +357,7 @@ const Dashboard = async () => {
         <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-5">
           {/* Avatar */}
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold text-xl shadow-md flex-shrink-0">
-            {MOCK_USER.initials}
+            {initials}
           </div>
 
           {/* Info */}
@@ -211,11 +365,70 @@ const Dashboard = async () => {
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-xl font-bold text-gray-900">{MOCK_USER.name}</h1>
               <span className="flex items-center gap-1 bg-amber-50 text-amber-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-amber-200">
-                ⭐ {MOCK_USER.rating}
+                ⭐ 4.8
+{/* 
+{
+  "profile": {
+    "name": "Aditya Sharma",
+    "email": "aditya@mait.ac.in",
+    "college": "MAIT",
+    "branch": "EEE",
+    "year": 3,
+    "joined": "2024-03-15T10:30:00.000Z"
+  },
+  "stats": {
+    "totalViews": 1240,
+    "totalConversations": 8,
+    "activeListings": 2,
+    "pausedListings": 1,
+    "soldItems": 5
+  },
+  "items": {
+    "active": [
+      {
+        "id": "prod_123",
+        "title": "Engineering Physics Textbook",
+        "price": 450,
+        "status": "active",
+        "views": 45,
+        "image": ["https://cdn.example.com/book1.jpg"]
+      },
+      {
+        "id": "prod_124",
+        "title": "Scientific Calculator FX-991EX",
+        "price": 1100,
+        "status": "active",
+        "views": 89,
+        "image": ["https://cdn.example.com/calc.jpg"]
+      }
+    ],
+    "paused": [
+      {
+        "id": "prod_125",
+        "title": "Lab Coat - Size L",
+        "price": 200,
+        "status": "paused",
+        "views": 12,
+        "image": ["https://cdn.example.com/coat.jpg"]
+      }
+    ],
+    "sold": [
+      {
+        "id": "prod_110",
+        "title": "Drawing Board",
+        "price": 300,
+        "status": "sold",
+        "views": 150,
+        "image": ["https://cdn.example.com/board.jpg"]
+      }
+    ]
+  }
+} */}
+
               </span>
             </div>
-            <p className="text-sm text-gray-500 mt-0.5">{MOCK_USER.college}</p>
-            <p className="text-xs text-gray-400 mt-1">Member since {MOCK_USER.joinedAt} · {MOCK_USER.totalSales} items sold</p>
+            <p className="text-sm text-gray-500 mt-0.5">{profile.college}</p>
+            <p className="text-xs text-gray-400 mt-1">Member since {formatDate(profile.joined)} · {stats.soldItems} items sold</p>
           </div>
 
           {/* Quick actions */}
@@ -227,7 +440,7 @@ const Dashboard = async () => {
               + New Listing
             </Link>
             <Link
-              href="/chats"
+              href="/inbox"
               className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm rounded-xl font-semibold hover:border-purple-400 hover:text-purple-700 transition-colors"
             >
               💬 Inbox
@@ -239,25 +452,25 @@ const Dashboard = async () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard
             label="Active Listings"
-            value={activeCount}
+            value={stats.activeListings}
             accent="bg-purple-100 text-purple-700"
             icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
           />
           <StatCard
             label="Total Views"
-            value={totalViews}
+            value={profile.totalViews}
             accent="bg-blue-100 text-blue-700"
             icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>}
           />
           <StatCard
             label="Conversations"
-            value={totalConversations}
+            value={stats.totalConversations}
             accent="bg-emerald-100 text-emerald-700"
             icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z" /></svg>}
           />
           <StatCard
             label="Items Sold"
-            value={MOCK_USER.totalSales}
+            value={stats.soldItems}
             accent="bg-orange-100 text-orange-700"
             icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
           />

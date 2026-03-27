@@ -1,108 +1,129 @@
-"use client"
+'use client';
 
-import { GalleryVerticalEnd } from "lucide-react"
-import axios from "axios"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { ChangeEvent, FormEvent, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
-
-
-export function SignupForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
-
+export function SigninForm() {
   const router = useRouter();
-  const [email , setEmail] = useState("");
-  const [password , setPassword] = useState("");
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPass, setShowPass] = useState(false);
 
+  const set = (key: keyof typeof form) => (val: string) =>
+    setForm((f) => ({ ...f, [key]: val }));
+
+  const handleSubmit = async () => {
+    setError("");
+    if (!form.email || !form.password) {
+      setError("Please enter your email and password.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        "http://localhost:4000/api/auth/sign-in",
+        {
+          email: form.email.trim().toLowerCase(),
+          password: form.password,
+        },
+        { withCredentials: true }
+      );
+
+      if (res.data.authStatus) {
+        router.push("/");
+      }
+    } catch (err: any) {
+      // backend sends { authStatus: false, msg: "..." }
+      const msg = err.response?.data?.msg || "Something went wrong. Please try again.";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <form onSubmit={async (e : FormEvent<HTMLFormElement>) => {
-                    e.preventDefault();                    
-                    if (password.length < 8) {
-                      alert("First Enter atleast 8 digits of password");
-                      return;
-                    }
-                    const response = await axios({
-                      method : "post",
-                      url : "http://localhost:4000/api/auth/sign-in",
-                      withCredentials : true,
-                      data: {
-                        email : email,
-                        password : password
-                      }
-                    });
-                    console.log(response.data);
-                    
-                    if(response.data.authStatus){
-                      router.push('/');
-                    }
+    <div className="w-full max-w-sm mx-auto">
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <h2 className="text-2xl font-black text-gray-900">Welcome back</h2>
+        <p className="text-sm text-gray-500 mt-1">Sign in to your DormDeal account</p>
+      </div>
 
-                  }}>
-        <FieldGroup>
-          <div className="flex flex-col items-center gap-2 text-center">
-            
-            <h1 className="text-xl font-bold">Log-in</h1>
-            <FieldDescription>
-              Don't have an account? <a href="/sign-up">Sign Up</a>
-            </FieldDescription>
+      <div className="flex flex-col gap-4">
+        {/* Email */}
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="email" className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={form.email}
+            onChange={(e) => set("email")(e.target.value)}
+            placeholder="you@example.com"
+            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent focus:bg-white transition-all"
+          />
+        </div>
+
+        {/* Password */}
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <label htmlFor="signin-password" className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+              Password
+            </label>
+            <span className="text-xs text-purple-600 hover:underline cursor-pointer font-medium">
+              Forgot password?
+            </span>
           </div>
-          <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
-            <Input
-              id="email"
-              type="email"
-              placeholder="me@example.com"
-              required
-              onChange={( e : ChangeEvent<HTMLInputElement>) => {
-                setEmail(e.target.value);
-              }}
+          <div className="relative">
+            <input
+              id="signin-password"
+              type={showPass ? "text" : "password"}
+              value={form.password}
+              onChange={(e) => set("password")(e.target.value)}
+              placeholder="Your password"
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              className="w-full px-4 py-3 pr-16 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent focus:bg-white transition-all"
             />
-            <FieldDescription>
-                  Enter your university mail
-                </FieldDescription>
-          </Field>
-         <Field>
-            <FieldLabel htmlFor="password">Password</FieldLabel>
-            <Input
-              id="password"
-              type="password"
-              placeholder="********"
-              minLength={8}
-              required
-              onChange={( e : ChangeEvent<HTMLInputElement>) => {
-                  e.target.value = e.target.value.split(" ").join("");
-                  setPassword(e.target.value);
-                }}
-            />
-            <FieldDescription>
-                 <a href="/sign-up">Forgot Password ?</a>
-            </FieldDescription>
-          </Field>
-          
-          <Field>
-            <Button type="submit">Log-In</Button>
-          </Field>
-          <FieldSeparator></FieldSeparator>
-          
-        </FieldGroup>
-      </form>
-      <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
-      </FieldDescription>
+            <button
+              type="button"
+              onClick={() => setShowPass((p) => !p)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400 hover:text-purple-600 transition-colors"
+            >
+              {showPass ? "Hide" : "Show"}
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+            <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={loading || !form.email || !form.password}
+          className="w-full py-3 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm shadow-purple-200"
+        >
+          {loading ? "Signing in…" : "Sign In →"}
+        </button>
+      </div>
+
+      <p className="text-center text-xs text-gray-500 mt-6">
+        Don't have an account?{" "}
+        <Link href="/sign-up" className="text-purple-600 font-bold hover:underline">
+          Sign up free
+        </Link>
+      </p>
     </div>
-  )
+  );
 }

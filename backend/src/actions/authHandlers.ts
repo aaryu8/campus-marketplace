@@ -18,7 +18,7 @@ export async function signUpHandler(req: Request, res: Response) {
             });
         }
 
-        const { name, email, password } = data;
+        const { name, email, password , college , branch , year} = data;
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
@@ -32,7 +32,7 @@ export async function signUpHandler(req: Request, res: Response) {
         const hashedPassword = await hashPassword(password, salt);
 
         const user = await prisma.user.create({
-            data: { name, email, password: hashedPassword, salt }
+            data: { name, email, password: hashedPassword, salt , college , branch , year}
         });
 
         const sessionObject = { id: user.id, name: user.name, email: user.email };

@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 
 import authRoutes from './routes/auth.js';
 import marketplaceRoutes from './routes/marketplace.js';
+import dashboardRoutes from './routes/dashboard.js'
 import { handleChatSockets } from './ws/chat.js'; 
 import chatWork from './chat/chatWork.js';
 import './cron/views.js'; // starts the cron job
@@ -32,7 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/chat' , chatWork);
-app.use('/api/dashboard' , )
+app.use('/api/dashboard' , dashboardRoutes );
 
 
 // ✅ WebSocket / Chat
