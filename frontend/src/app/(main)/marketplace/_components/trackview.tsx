@@ -16,7 +16,7 @@ export function TrackView({ productId }: { productId: string }) {
         `http://localhost:4000/api/marketplace/${productId}/view`,
         {
           method: 'POST',
-          headers: { 'x-session-id': sessionId },
+          headers: { 'x-session-id': sessionId },  
         }
       );
       const data = await res.json();

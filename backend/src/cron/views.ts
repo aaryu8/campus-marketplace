@@ -1,26 +1,52 @@
+// cron/views.ts
+import cron from 'node-cron';
 import { redisClient } from '../redis/redis.js';
 import { prisma } from '../db.js';
 
 async function aggregateViewsToDB() {
-  try {
-    const keys = await redisClient.keys('view_count:*');
-    if (keys.length === 0) return;
+  console.log('🔄 Running view aggregation...');
 
-    for (const key of keys) {
+  try {
+    // scan is safe for production — keys() can block and timeout on Upstash
+    // cursor starts at 0, loop until Upstash returns 0 again (full scan complete)
+    let cursor = 0;
+    const allKeys: string[] = [];
+
+    do {
+      const [nextCursor, keys] = await redisClient.scan(cursor, {
+        match: 'view_count:*',
+        count: 100,
+      });
+      cursor = parseInt(nextCursor);
+      allKeys.push(...keys);
+    } while (cursor !== 0);
+
+    if (allKeys.length === 0) {
+      console.log('📭 No views to aggregate');
+      return;
+    }
+
+    for (const key of allKeys) {
       const parts = key.split(':');
       const productId = parts[1];
       const datePart = parts[2];
-      if (!productId) continue;
+      if (!productId || !datePart) continue;
 
-      // Atomic get + delete — no race condition
-      const redisValue = await redisClient.getdel(key);
-      const viewCount = typeof redisValue === 'number'
-        ? redisValue
-        : parseInt((redisValue as string) ?? '0', 10);
+      // get + del separately — getdel is not reliable across Upstash SDK versions
+      const raw = await redisClient.get<number>(key);
+      if (!raw) continue;
 
-      if (!viewCount || viewCount === 0) continue;
+      // delete BEFORE writing to DB — if DB write fails, you lose the count
+      // but this avoids double-counting on retry which is worse
+      await redisClient.del(key);
 
-      console.log(`Aggregating ${viewCount} views for product ${productId}`);
+      const viewCount = typeof raw === 'number'
+        ? raw
+        : parseInt(String(raw), 10);
+
+      if (!viewCount || isNaN(viewCount) || viewCount === 0) continue;
+
+      console.log(`📊 ${productId} — incrementing by ${viewCount}`);
 
       const updatedProduct = await prisma.product.update({
         where: { id: productId },
@@ -32,26 +58,17 @@ async function aggregateViewsToDB() {
         data: { totalViews: { increment: viewCount } },
       });
 
+      // clean up the dedup set for this day
       await redisClient.del(`view:${productId}:${datePart}`);
     }
 
     console.log('✅ View aggregation complete');
   } catch (err) {
-    console.error('❌ Error aggregating views:', err);
+    console.error('❌ View aggregation failed:', err);
   }
 }
 
-// Self-scheduling — waits for job to finish before next run
-// No overlap, no missed executions
-function scheduleAggregation(intervalMs: number) {
-  const run = async () => {
-    await aggregateViewsToDB();
-    setTimeout(run, intervalMs); // schedule AFTER completion
-  };
+// Runs every 5 minutes — change to '0 * * * *' for every hour in production
+cron.schedule('* * * * *', aggregateViewsToDB);
 
-  // First run after one interval — avoids instant fire on nodemon restart
-  setTimeout(run, intervalMs);
-  console.log(`🚀 View aggregation scheduled every ${intervalMs / 1000}s`);
-}
-
-scheduleAggregation(10_000); // 10 seconds
+console.log('🚀 View aggregation cron scheduled');
