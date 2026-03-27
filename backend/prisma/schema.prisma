@@ -24,6 +24,7 @@ model User {
   salt                String
   createdAt           DateTime       @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+  totalViews          Int @default(0)
   
   // Relations
   products            Product[]
@@ -43,6 +44,8 @@ model Product {
   image         String[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime @default(now()) @updatedAt
+
+  views         Int @default(0)
   
   // Relations
   owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
@@ -52,6 +55,7 @@ model Product {
   @@index([ownerId])
   @@index([category])
   @@index([createdAt])
+  @@index([views])
 }
 
 model Conversation {

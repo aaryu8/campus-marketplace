@@ -9,10 +9,13 @@ import authRoutes from './routes/auth.js';
 import marketplaceRoutes from './routes/marketplace.js';
 import { handleChatSockets } from './ws/chat.js'; 
 import chatWork from './chat/chatWork.js';
+import './cron/views.js'; // starts the cron job
 dotenv.config();
+
 
 const app = express();
 const server = http.createServer(app);
+
 
 // ✅ Middleware
 app.use(cors({

@@ -51,6 +51,7 @@ const ProductBuying = async ({ params }: Props) => {
       );
     }
 
+    // page.tsx
     productData = response.data.data.productInfo;
   } catch {
     return (
@@ -76,12 +77,15 @@ const ProductBuying = async ({ params }: Props) => {
   const sellerId = owner.id;
   const sellerInitial = owner.name.charAt(0).toUpperCase();
   const postedAgo = formatDistanceToNow(new Date(createdAt), { addSuffix: true });
+  
 
   // Seller join date — use owner.createdAt if your backend returns it, otherwise omit
   // When you add createdAt to owner in your backend select, this will auto-populate
-  const sellerSince = owner.createdAt
-    ? `On DormDeal since ${new Date(owner.createdAt).toLocaleDateString("en-IN", { month: "long", year: "numeric" })}`
+  const sellerSince = productData.owner.createdAt
+    ? `On DormDeal since ${new Date(productData.owner.createdAt).toLocaleDateString("en-IN", { month: "long", year: "numeric" })}`
     : "DormDeal member";
+
+    
 
   // Hardcoded views — replace with real data when backend supports it
   // To wire this up later: add a `views` field to your Product model, increment on GET

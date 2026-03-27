@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import { prisma } from "../db.js";
 import { productSchema } from "../schema.js";
-
-
+import { ensureAnonymousSession } from "./session.js"
+import { redisClient } from '../redis/redis.js'
 
 export async function createListingHandler(req: Request, res: Response) {
     try {
@@ -56,10 +56,38 @@ export async function getProductsHandler(req: Request, res: Response) {
 }
 
 
-
 export async function getProductHandler(req: Request, res: Response) {
     try {
         const { productId } = req.params;
+        
+        const sessionId = await ensureAnonymousSession(req, res);
+
+        const todayKey = `view:${productId}:${new Date().toISOString().slice(0, 10)}`; // Set of sessionIds
+        const counterKey = `view_count:${productId}:${new Date().toISOString().slice(0, 10)}`; // Counter
+
+        // Deduplicate: only count once per session
+        const hasViewed = await redisClient.sismember(todayKey, sessionId);
+
+        // Upstash Redis returns number for sismember: 0 = not exists, 1 = exists
+        if (hasViewed === 0) {
+        // Add sessionId to set
+        await redisClient.sadd(todayKey, sessionId);
+        await redisClient.expire(todayKey, 60 * 60 * 12); // 12 hours, adjustable
+
+        // Increment total views for the period
+        await redisClient.incr(counterKey);
+        await redisClient.expire(counterKey, 60 * 60 * 12);
+        }
+
+        // Safe parsing for viewsToday
+        const redisValue = await redisClient.get(counterKey);
+
+        // TypeScript-safe cast: convert unknown -> string
+        const redisValueStr = typeof redisValue === 'string' ? redisValue : '0';
+        const viewsToday = parseInt(redisValueStr, 10);
+
+        console.log('Views today for product', productId, ':', viewsToday);
+
 
         const productInfo = await prisma.product.findUnique({
             where: { id: productId! },
@@ -72,9 +100,21 @@ export async function getProductHandler(req: Request, res: Response) {
                 condition: true,
                 image: true,
                 createdAt: true,
-                owner: { select: { id : true , name: true, email: true } }
+                // Add createdAt here inside the owner select
+                owner: { 
+                    select: { 
+                        id: true, 
+                        name: true, 
+                        email: true,
+                        createdAt: true // This allows the "Member since" logic to work
+                    } 
+                }
             }
         });
+
+        if (!productInfo) {
+            return res.status(404).send({ taskStatus: false, msg: "Product not found" });
+        }
 
         return res.status(200).send({ taskStatus: true, data: { productInfo } });
 

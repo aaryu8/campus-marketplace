@@ -17,17 +17,30 @@ const sessionSchema = z.object({
 type UserSession = z.infer<typeof sessionSchema>
 
 
+export async function ensureAnonymousSession(req: Request, res: Response) {
+  let sessionId = req.cookies['session_id'];
+  if (!sessionId) {
+    // create anonymous session using your crypto logic
+    sessionId = crypto.randomBytes(512).toString("hex").normalize();
+    res.cookie("session_id", sessionId, {
+      httpOnly: true,
+      maxAge: 60*60*24*7*1000,
+      sameSite: "lax",
+      secure: false
+    });
+  }
+  return sessionId;
+}
+
 
 
 
 export async function createSession( user : UserSession , res : Response){
     const sessionId = crypto.randomBytes(512).toString("hex").normalize();
+
     await redisClient.set(`session:${sessionId}` , sessionSchema.parse(user) , {
       ex: SESSION_EXPIRATION_SECONDS,
     })
-
-    const rawUser = await redisClient.get(`session:${sessionId}`);
-    console.log("checking if i am even setting up something : " + rawUser);
 
     res.cookie(
       "session_id",

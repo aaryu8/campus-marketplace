@@ -33,7 +33,7 @@ interface Listing {
 // ─── Mock data (replace with real fetch / server component props) ──────────────
 
 const MOCK_USER = {
-  name: "Aryan Sharma",
+  name: " Sharma",
   initials: "AS",
   college: "IIT Delhi · CSE '26",
   joinedAt: "Sep 2023",
