@@ -65,7 +65,11 @@ export async function createListingHandler(req: Request, res: Response) {
 
 export async function getProductsHandler(req: Request, res: Response) {
     try {
-        const products = await prisma.product.findMany();
+        const products = await prisma.product.findMany({
+          where : {
+            status : "active"
+          }
+        });
         return res.status(200).send(products);
     } catch (error) {
         console.error(error);

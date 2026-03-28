@@ -9,7 +9,8 @@ export interface Product {
   category: string;
   condition?: string;   // optional, like in Prisma
   image: string[];      // array of image URLs or paths
-  createdAt: string;    // DateTime in Prisma is usually returned as ISO string in JSON
+  createdAt: string; 
+  views : number;   // DateTime in Prisma is usually returned as ISO string in JSON
   ownerId: string;
   
   // Optional: include owner info if you plan to fetch relational data
