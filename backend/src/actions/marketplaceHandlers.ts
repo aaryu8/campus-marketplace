@@ -5,42 +5,61 @@ import { ensureAnonymousSession } from "./session.js"
 import { redisClient } from '../redis/redis.js'
 
 export async function createListingHandler(req: Request, res: Response) {
-    try {
-        const userInfo = res.locals.user;
-        const rawData = req.body;
-
-        console.log(`Here is the information regarding user :- ${userInfo}`);
-
-        const { success, data } = productSchema.safeParse(rawData);
-        if (!success) {
-            return res.status(400).send({ msg: "Invalid data format" });
-        }
-
-        const { title, price, description, image } = data;
-        const userId = userInfo.id;
-
-        const user = await prisma.user.findUnique({ where: { id: userId! } });
-        if (!user) {
-            return res.status(404).send({ msg: "User not found" });
-        }
-
-        const product = await prisma.product.create({
-            data: {
-                title,
-                price: parseInt(price, 10),
-                description,
-                category: "general",
-                image,
-                ownerId: user.id
-            }
-        });
-
-        return res.status(201).send({ taskStatus: true, product });
-
-    } catch (error) {
-        console.error("Error creating listing:", error);
-        return res.status(500).send({ msg: "Internal server error" });
+  try {
+    // requireAuth middleware sets res.locals.user
+    const userInfo = res.locals.user;
+    if (!userInfo?.id) {
+      return res.status(401).json({ msg: "Unauthorized" });
     }
+ 
+    // ── Validate ──────────────────────────────────────────────────
+    const parsed = productSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        msg: "Invalid data",
+        errors: parsed.error.flatten().fieldErrors,
+      });
+    }
+ 
+    const { title, price, description, category, condition, image } = parsed.data;
+ 
+    // ── Confirm user exists ───────────────────────────────────────
+    const user = await prisma.user.findUnique({ where: { id: userInfo.id } });
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+ 
+    // ── Create product ────────────────────────────────────────────
+    const product = await prisma.product.create({
+      data: {
+        title,
+        price,
+        description,
+        category,
+        condition,
+        image,
+        status: "active",
+        ownerId: user.id,
+      },
+      // Return enough for the frontend redirect
+      select: {
+        id: true,
+        title: true,
+        price: true,
+        category: true,
+        condition: true,
+        status: true,
+        image: true,
+        createdAt: true,
+      },
+    });
+ 
+    return res.status(201).json({ taskStatus: true, product });
+ 
+  } catch (error) {
+    console.error("Error creating listing:", error);
+    return res.status(500).json({ msg: "Internal server error" });
+  }
 }
 
 

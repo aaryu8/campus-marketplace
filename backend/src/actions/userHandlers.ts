@@ -14,8 +14,12 @@ export async function meHandler(req : Request , res : Response){
 
         const userInfo = res.locals.user;
 
+        if (!userInfo || !userInfo.id) {
+            return res.status(401).json({ error: "User not authenticated or ID missing" });
+            }
+
         const user = await prisma.user.findUnique({
-            where: { id: userInfo.userId },
+            where: { id: userInfo.id },
             select: {
                 // Profile Fields
                 id: true,
@@ -99,7 +103,7 @@ export async function profileHandler(req: Request, res: Response) {
 
 
         const user = await prisma.user.findUnique({
-            where: { id: userInfo.userId },
+            where: { id: userInfo.id },
             select: {
                 id:        true,
                 name:      true,
@@ -132,7 +136,7 @@ export async function updateprofileHandler(req: Request, res: Response) {
         const { name, college, branch, year } = req.body;
 
         const updated = await prisma.user.update({
-            where: { id: userInfo.userid },
+            where: { id: userInfo.id },
             data: {
                 ...(name    !== undefined && { name }),
                 ...(college !== undefined && { college }),

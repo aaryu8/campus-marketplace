@@ -43,6 +43,26 @@ enum Branch {
   NotSpecified
 }
 
+enum Category {
+  general 
+  books
+  electronics
+  furniture
+  clothes
+  tickets
+  sports
+  transport
+  hostel
+}
+
+enum Condition {
+  new 
+  like_new
+  good
+  fair
+  poor
+}
+
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 model User {
@@ -75,8 +95,8 @@ model Product {
   price       Int
   description String        @db.Text
   rating      Float         @default(0)
-  category    String
-  condition   String?
+  category    Category
+  condition   Condition
   image       String[]
   status      ProductStatus @default(active)   // ← NEW
   createdAt   DateTime      @default(now())
@@ -129,3 +149,4 @@ model Message {
 // ─── Migration note ───────────────────────────────────────────────────────────
 // Run after updating this file:
 //   npx prisma migrate dev --name add_user_profile_product_status
+//npx prisma generate
