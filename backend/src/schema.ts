@@ -80,8 +80,7 @@ export const productSchema = z.object({
     .enum(["new", "like_new", "good", "fair", "poor"], {
       error: "Invalid condition", // Use 'error' or 'message' here
     })
-    .optional(),
-  
+  ,
   image: z
     .array(z.string().min(1))
     .max(5, "Maximum 5 images allowed")

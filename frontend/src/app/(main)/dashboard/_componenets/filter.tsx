@@ -2,26 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ListingCard } from "../page";
-
-type ListingStatus = "active" | "sold" | "paused";
-
-interface Listing {
-  id: string;
-  title: string;
-  price: number;
-  category: string;
-  status: ListingStatus;
-  image: string;
-  createdAt: string;
-  views: number;
-  conversations: number;
-}
+import { ListingCard , DashboardProduct } from "../types";
 
 
-
-
-function FilterTab({ label, active, onClick, count }: { label: string; active: boolean; onClick: () => void; count?: number }) {
+function FilterTab({
+  label, active, onClick, count,
+}: {
+  label: string; active: boolean; onClick: () => void; count?: number;
+}) {
   return (
     <button
       onClick={onClick}
@@ -39,17 +27,11 @@ function FilterTab({ label, active, onClick, count }: { label: string; active: b
   );
 }
 
-
-
-
-
-export default function ListingSection({ listings }: { listings: Listing[] }) {
-  const [filter, setFilter] = useState<"all" | ListingStatus>("all");
+export default function ListingSection({ listings }: { listings: DashboardProduct[] }) {
+  const [filter, setFilter] = useState<"all" | "active" | "paused" | "sold">("all");
 
   const filtered =
-    filter === "all"
-      ? listings
-      : listings.filter((l) => l.status === filter);
+    filter === "all" ? listings : listings.filter((l) => l.status === filter);
 
   return (
     <div>
@@ -57,28 +39,10 @@ export default function ListingSection({ listings }: { listings: Listing[] }) {
         <h2 className="text-lg font-bold text-gray-900">My Listings</h2>
 
         <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
-          <FilterTab
-            label="All"
-            active={filter === "all"}
-            onClick={() => setFilter("all")}
-            count={listings.length}
-          />
-          <FilterTab
-            label="Active"
-            active={filter === "active"}
-            onClick={() => setFilter("active")}
-            count={listings.filter((l) => l.status === "active").length}
-          />
-          <FilterTab
-            label="Paused"
-            active={filter === "paused"}
-            onClick={() => setFilter("paused")}
-          />
-          <FilterTab
-            label="Sold"
-            active={filter === "sold"}
-            onClick={() => setFilter("sold")}
-          />
+          <FilterTab label="All"    active={filter === "all"}    onClick={() => setFilter("all")}    count={listings.length} />
+          <FilterTab label="Active" active={filter === "active"} onClick={() => setFilter("active")} count={listings.filter((l) => l.status === "active").length} />
+          <FilterTab label="Paused" active={filter === "paused"} onClick={() => setFilter("paused")} count={listings.filter((l) => l.status === "paused").length} />
+          <FilterTab label="Sold"   active={filter === "sold"}   onClick={() => setFilter("sold")}   count={listings.filter((l) => l.status === "sold").length} />
         </div>
       </div>
 
@@ -91,10 +55,7 @@ export default function ListingSection({ listings }: { listings: Listing[] }) {
       ) : (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 py-16 text-center">
           <p className="text-gray-400 text-sm">No listings in this category.</p>
-          <Link
-            href="/createListing"
-            className="mt-3 inline-block text-sm text-purple-600 font-semibold hover:underline"
-          >
+          <Link href="/createListing" className="mt-3 inline-block text-sm text-purple-600 font-semibold hover:underline">
             + Create one
           </Link>
         </div>

@@ -16,24 +16,6 @@ const sessionSchema = z.object({
 
 type UserSession = z.infer<typeof sessionSchema>
 
-export async function ensureAnonymousSession(req: Request, res: Response) {
-  let sessionId = req.cookies['session_id'];
-  console.log('🍪 Incoming session_id cookie:', sessionId); // ← add this
-  if (!sessionId) {
-    sessionId = crypto.randomBytes(64).toString("hex"); // 512 bytes is overkill, 64 is fine
-    console.log('🆕 Created new anonymous session:', sessionId);
-    res.cookie("session_id", sessionId, {
-      httpOnly: true,
-      maxAge: 60 * 60 * 24 * 7 * 1000,
-      sameSite: "lax",
-      secure: false,
-      path: "/"
-    });
-  }
-  return sessionId;
-}
-
-
 
 
 export async function createSession( user : UserSession , res : Response){

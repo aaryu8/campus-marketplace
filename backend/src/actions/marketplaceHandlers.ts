@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../db.js";
 import { productSchema } from "../schema.js";
-import { ensureAnonymousSession } from "./session.js"
 import { redisClient } from '../redis/redis.js'
 
 export async function createListingHandler(req: Request, res: Response) {
