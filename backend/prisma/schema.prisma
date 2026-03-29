@@ -98,7 +98,7 @@ model Product {
   category    Category
   condition   Condition
   image       String[]
-  status      ProductStatus @default(active)   // ← NEW
+  status      ProductStatus @default(active)   
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @default(now()) @updatedAt
   views       Int           @default(0)
