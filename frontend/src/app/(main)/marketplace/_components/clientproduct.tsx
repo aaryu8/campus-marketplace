@@ -132,7 +132,7 @@ export const ButtonsComponent = ({ buyerId, sellerId, productId }: ButtonsCompon
         data: { buyerId, sellerId, productId },
       });
       if (!res.data.status) { alert('Could not start chat.'); return; }
-      router.push(`/chat/${res.data.data}`);
+      router.push(`/inbox?chatId=${res.data.data}`);
     } catch {
       alert('Could not start chat.');
     } finally {

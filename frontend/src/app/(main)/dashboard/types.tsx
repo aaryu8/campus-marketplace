@@ -105,14 +105,12 @@ export function ListingCard({ listing }: { listing: DashboardProduct }) {
       ${isSuspended ? "border-red-200 opacity-70" : "border-gray-100 hover:shadow-lg"}
     `}>
       {/* Image */}
-      <div className="relative overflow-hidden">
+      <div style={{ aspectRatio: "1/1" }} className="bg-gray-50 overflow-hidden rounded-t-xl">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imgSrc}
           alt={listing.title}
-          className={`w-full h-36 object-cover transition-transform duration-300
-            ${isSuspended ? "grayscale" : "group-hover:scale-105"}
-          `}
+          className="w-full h-full object-contain"
         />
         <div className="absolute top-2 left-2">
           <StatusBadge status={listing.status} moderationStatus={listing.moderationStatus} />

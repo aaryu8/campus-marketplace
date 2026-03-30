@@ -33,9 +33,8 @@ export function SigninForm() {
       );
 
       if (res.data.authStatus) {
-        router.refresh();
-        router.push("/");
-      }
+      window.location.href = "/";  // ← full page reload, no race condition
+    }
     } catch (err: any) {
       // backend sends { authStatus: false, msg: "..." }
       const msg = err.response?.data?.msg || "Something went wrong. Please try again.";

@@ -115,8 +115,7 @@ export function SignupForm() {
       );
 
       if (res.data.authStatus) {
-        router.refresh();
-        router.push("/");
+        window.location.href = "/";  // ← full page reload, no race condition
       }
     } catch (err: any) {
       // backend sends { authStatus: false, msg: "..." } — key is `msg`, not `message`

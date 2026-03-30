@@ -585,3 +585,70 @@
     border-right: none;
   }
 }
+
+
+
+/* ── Mobile: toggle visibility ─────────────────────────── */
+.leftHidden {
+  display: none;
+}
+
+.rightHidden {
+  display: none;
+}
+
+/* ── Mobile back button ────────────────────────────────── */
+.mobileBackBtn {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6d28d9;
+  background: #f5f3ff;
+  border: none;
+  border-bottom: 1px solid #ede9fe;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .shell {
+    flex-direction: column;
+    height: 100dvh;
+  }
+
+  .left {
+    width: 100%;
+    height: 100dvh;
+    border-right: none;
+    border-bottom: 1px solid #f0eef8;
+  }
+
+  .leftHidden {
+    display: none;
+  }
+
+  .right {
+    width: 100%;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rightHidden {
+    display: none;
+  }
+
+  .mobileBackBtn {
+    display: flex;
+  }
+
+  /* Make chat panel fill full height on mobile */
+  .chatPanel {
+    height: 100%;
+    border-radius: 0;
+  }
+}

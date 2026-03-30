@@ -98,7 +98,6 @@ import Navbar from "./navbar";
   }
 
   // ─── Navbar ───────────────────────────────────────────────────────────────────
-  
 
   // ─── Homepage ─────────────────────────────────────────────────────────────────
   export default function Homepage({ userName, userEmail }: HomepageProps) {

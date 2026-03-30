@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mountains_of_Christmas } from "next/font/google";
@@ -188,9 +188,12 @@ function ImageUploadZone({
 // ─── Create Listing Page ──────────────────────────────────────────────────────
 
 export default function CreateListingPage() {
-  const router = useRouter();
 
-  const [form, setForm] = useState<FormState>({
+
+
+  const router = useRouter();
+const [authChecked, setAuthChecked] = useState(false);
+ const [form, setForm] = useState<FormState>({
     title: "",
     price: "",
     description: "",
@@ -198,10 +201,34 @@ export default function CreateListingPage() {
     condition: "",
     images: [],
   });
-
-  const [step, setStep] = useState<1 | 2>(1); // 1 = details, 2 = photos
+   const [step, setStep] = useState<1 | 2>(1); // 1 = details, 2 = photos
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+useEffect(() => {
+  axios.get("http://localhost:4000/api/auth/me", { withCredentials: true })
+    .then(res => {
+      if (!res.data.LoggedIn) {
+        router.replace("/sign-in");
+      } else {
+        setAuthChecked(true);
+      }
+    })
+    .catch(() => router.replace("/sign-in"));
+}, []);
+
+
+if (!authChecked) return (
+  <div className="min-h-screen bg-[#f8f7f4] flex items-center justify-center">
+    <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+  </div>
+);
+
+// or a loading spinner
+
+ 
+
+ 
 
   const set = (key: keyof FormState, value: any) =>
     setForm((prev) => ({ ...prev, [key]: value }));

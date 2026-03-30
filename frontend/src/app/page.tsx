@@ -7,16 +7,19 @@ export default async function Home() {
 
   try {
     const cookieStore = await cookies();
-    const cookieString = cookieStore.toString();
-    
-    // Using validateStatus to handle 401/403 gracefully without the catch block overhead
-    const response = await axios.get("http://localhost:4000/api/auth/me", {
-      withCredentials: true,
-      headers: {
-        Cookie: cookieString
-      },
-      validateStatus: (status) => status < 500 
-    });
+    const all = cookieStore.getAll();
+console.log("NEXT COOKIES:", all)
+   // page.tsx
+const cookieHeader = cookieStore.getAll()
+  .map(c => `${c.name}=${c.value}`)
+  .join("; ");
+
+const response = await axios.get("http://localhost:4000/api/auth/me", {
+  headers: {
+    Cookie: cookieHeader  // ← proper format: "session_id=abc123; other=xyz"
+  },
+  validateStatus: (status) => status < 500
+});
 
     if (response.status === 200) {
       user = response.data.user;

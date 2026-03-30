@@ -1,5 +1,6 @@
 import axios from "axios";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation"; // Import redirect
 import InboxClient from "./_components/InboxClient";
 
 export type InboxConversation = {
@@ -17,16 +18,25 @@ const InboxPage = async () => {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("session_id");
 
+  // 1. Immediate local check: If no cookie exists, don't even bother calling the API
+  if (!sessionCookie) {
+    redirect("/sign-in");
+  }
+
   let conversations: InboxConversation[] = [];
+  
   try {
     const res = await axios({
       method: "GET",
       url: "http://localhost:4000/api/chat/inbox",
-      headers: { Cookie: `session_id=${sessionCookie?.value}` },
+      headers: { Cookie: `session_id=${sessionCookie.value}` },
     });
+    
     conversations = res.data.data;
   } catch (error) {
-    console.error(error);
+    // 2. If the API returns 401/403 or fails, redirect to sign-in
+    console.error("Auth failed or API error:", error);
+    redirect("/sign-in");
   }
 
   return <InboxClient initialConversations={conversations} />;

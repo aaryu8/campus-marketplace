@@ -7,8 +7,7 @@ import axios from 'axios';
 import { type InboxConversation } from '../page';
 import ChatPanel from './ChatPanel';
 import s from '../inbox.module.css';
-
-// ─── Avatar palette ────────────────────────────────────────────────────────
+import { useSearchParams } from 'next/navigation';
 
 const PALETTES = [
   { bg: '#f3e8ff', text: '#6d28d9' },
@@ -36,21 +35,23 @@ function compactTime(dateStr: string) {
     .replace(' years', 'y').replace(' year', 'y');
 }
 
-// ─── Props ─────────────────────────────────────────────────────────────────
-
 interface Props {
   initialConversations: InboxConversation[];
 }
 
 export default function InboxClient({ initialConversations }: Props) {
+  const searchParams = useSearchParams();
   const [conversations, setConversations] = useState(initialConversations);
-  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(
+    searchParams.get('chatId')
+  );
   const [currentUserId, setCurrentUserId] = useState('');
   const [currentUserName, setCurrentUserName] = useState('');
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null); // chatId pending delete
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  // ← NEW: track if we're showing chat panel on mobile
+  const [mobileShowChat, setMobileShowChat] = useState(!!searchParams.get('chatId'));
 
-  // Fetch current user once
   useEffect(() => {
     axios.get('http://localhost:4000/api/auth/me', { withCredentials: true })
       .then(res => {
@@ -62,6 +63,12 @@ export default function InboxClient({ initialConversations }: Props) {
 
   const selectedChat = conversations.find(c => c.chatId === selectedChatId);
 
+  // ← NEW: selecting a chat on mobile also flips to chat view
+  const handleSelectChat = (chatId: string) => {
+    setSelectedChatId(chatId);
+    setMobileShowChat(true);
+  };
+
   const handleDelete = async (chatId: string) => {
     setDeleting(true);
     try {
@@ -69,8 +76,11 @@ export default function InboxClient({ initialConversations }: Props) {
         withCredentials: true,
       });
       setConversations(prev => prev.filter(c => c.chatId !== chatId));
-      if (selectedChatId === chatId) setSelectedChatId(null);
-    } catch (err) {
+      if (selectedChatId === chatId) {
+        setSelectedChatId(null);
+        setMobileShowChat(false);
+      }
+    } catch {
       alert('Could not delete conversation. Please try again.');
     } finally {
       setDeleting(false);
@@ -81,8 +91,8 @@ export default function InboxClient({ initialConversations }: Props) {
   return (
     <div className={s.shell}>
 
-      {/* ── LEFT ─────────────────────────────────────────── */}
-      <aside className={s.left}>
+      {/* ── LEFT (thread list) ── hidden on mobile when chat is open */}
+      <aside className={`${s.left} ${mobileShowChat ? s.leftHidden : ''}`}>
         <div className={s.leftHeader}>
           <Link href="/dashboard" className={s.backLink}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
@@ -93,7 +103,9 @@ export default function InboxClient({ initialConversations }: Props) {
           </Link>
           <div className={s.pageTitle}>Inbox</div>
           {conversations.length > 0 && (
-            <div className={s.convCount}>{conversations.length} conversation{conversations.length !== 1 ? 's' : ''}</div>
+            <div className={s.convCount}>
+              {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
+            </div>
           )}
         </div>
 
@@ -105,9 +117,7 @@ export default function InboxClient({ initialConversations }: Props) {
               <p className={s.emptyThreadSub}>
                 Your conversations with buyers and sellers will appear here.
               </p>
-              <Link href="/marketplace" className={s.emptyThreadLink}>
-                Browse listings
-              </Link>
+              <Link href="/marketplace" className={s.emptyThreadLink}>Browse listings</Link>
             </div>
           ) : (
             conversations.map((chat, i) => {
@@ -118,23 +128,16 @@ export default function InboxClient({ initialConversations }: Props) {
 
               return (
                 <div key={chat.chatId}>
-                  {/* Delete confirm overlay */}
                   {isPendingDelete ? (
                     <div className={s.deleteConfirmRow}>
                       <p className={s.deleteConfirmText}>Delete this conversation?</p>
                       <div className={s.deleteConfirmBtns}>
-                        <button
-                          className={s.deleteCancelBtn}
-                          onClick={() => setDeleteConfirm(null)}
-                          disabled={deleting}
-                        >
+                        <button className={s.deleteCancelBtn}
+                          onClick={() => setDeleteConfirm(null)} disabled={deleting}>
                           Cancel
                         </button>
-                        <button
-                          className={s.deleteConfirmBtn}
-                          onClick={() => handleDelete(chat.chatId)}
-                          disabled={deleting}
-                        >
+                        <button className={s.deleteConfirmBtn}
+                          onClick={() => handleDelete(chat.chatId)} disabled={deleting}>
                           {deleting ? 'Deleting…' : 'Delete'}
                         </button>
                       </div>
@@ -143,23 +146,16 @@ export default function InboxClient({ initialConversations }: Props) {
                     <div
                       className={`${s.threadRow} ${isSelected ? s.threadRowActive : ''}`}
                       style={{ animationDelay: `${i * 45}ms` }}
-                      onClick={() => setSelectedChatId(chat.chatId)}
+                      onClick={() => handleSelectChat(chat.chatId)}
                     >
-                      <div
-                        className={s.avatar}
-                        style={{ background: pal.bg, color: pal.text }}
-                      >
+                      <div className={s.avatar} style={{ background: pal.bg, color: pal.text }}>
                         {chat.otherUser.name.charAt(0).toUpperCase()}
                       </div>
-
                       <div className={s.threadBody}>
                         <div className={s.threadTop}>
                           <span className={s.threadName}>{chat.otherUser.name}</span>
-                          {last && (
-                            <span className={s.threadTime}>{compactTime(last.createdAt)}</span>
-                          )}
+                          {last && <span className={s.threadTime}>{compactTime(last.createdAt)}</span>}
                         </div>
-
                         <div className={s.productChip}>
                           <svg width="9" height="9" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" strokeWidth="2.5">
@@ -168,25 +164,12 @@ export default function InboxClient({ initialConversations }: Props) {
                           </svg>
                           {chat.product.title}
                         </div>
-
                         <div className={s.threadPreview}>
-                          {last ? (
-                            <><b>{last.sender.name}:</b> {last.text}</>
-                          ) : (
-                            <em>No messages yet</em>
-                          )}
+                          {last ? <><b>{last.sender.name}:</b> {last.text}</> : <em>No messages yet</em>}
                         </div>
                       </div>
-
-                      {/* Delete button — shows on hover */}
-                      <button
-                        className={s.deleteBtn}
-                        title="Delete conversation"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteConfirm(chat.chatId);
-                        }}
-                      >
+                      <button className={s.deleteBtn} title="Delete conversation"
+                        onClick={(e) => { e.stopPropagation(); setDeleteConfirm(chat.chatId); }}>
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                           stroke="currentColor" strokeWidth="2">
                           <polyline points="3 6 5 6 21 6" />
@@ -195,13 +178,9 @@ export default function InboxClient({ initialConversations }: Props) {
                           <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
                         </svg>
                       </button>
-
-                      {isSelected && (
-                        <div className={s.activeIndicator} />
-                      )}
+                      {isSelected && <div className={s.activeIndicator} />}
                     </div>
                   )}
-
                   {i < conversations.length - 1 && <div className={s.threadSep} />}
                 </div>
               );
@@ -210,8 +189,22 @@ export default function InboxClient({ initialConversations }: Props) {
         </div>
       </aside>
 
-      {/* ── RIGHT ────────────────────────────────────────── */}
-      <div className={s.right}>
+      {/* ── RIGHT (chat panel) ── hidden on mobile when list is showing */}
+      <div className={`${s.right} ${!mobileShowChat ? s.rightHidden : ''}`}>
+        {/* ← NEW: back button on mobile */}
+        {mobileShowChat && (
+          <button
+            className={s.mobileBackBtn}
+            onClick={() => { setMobileShowChat(false); setSelectedChatId(null); }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2.5">
+              <path d="M19 12H5M12 5l-7 7 7 7" />
+            </svg>
+            All chats
+          </button>
+        )}
+
         {selectedChat && currentUserId ? (
           <ChatPanel
             key={selectedChatId!}
@@ -227,12 +220,9 @@ export default function InboxClient({ initialConversations }: Props) {
           <PlaceholderRight />
         )}
       </div>
-
     </div>
   );
 }
-
-// ─── Right panel placeholders ──────────────────────────────────────────────
 
 function PlaceholderRight() {
   return (

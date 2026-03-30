@@ -109,21 +109,17 @@ let productData: {
 
       
 
-    // Hardcoded views — replace with real data when backend supports it
-    // To wire this up later: add a `views` field to your Product model, increment on GET
-    const HARDCODED_VIEWS = 47;
 
     // For the slider: currently backend returns 1 image in the array
     // When your backend returns multiple images, they'll all show up automatically
     // To test slider: images array below is hardcoded to repeat the same image 3 times
     // REMOVE this and just use `image` directly once backend sends multiple images
     const sliderImages = image;
-console.log({ buyerId, sellerId })
     return (
       <div className={s.page}>
         <TrackView productId={productId} />
         {/* ── LEFT: image stage ─────────────────────────────── */}
-        <div style={{ flex: 1, minWidth: 0, position: "relative", height: "100vh" }}>
+        <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
           <div className={s.imageNav}>
             <Link href="/marketplace" className={s.backBtn}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

@@ -3,9 +3,10 @@
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 .page {
   display: flex;
+  flex-direction: row;
   height: 100vh;
   width: 100%;
-  overflow: hidden;
+  overflow: hidden;        /* ← kept for desktop */
   font-family: 'Manrope', sans-serif;
   background: #f0f2f5;
 }
@@ -494,23 +495,40 @@
 .authNoticeLink:hover { background: #166fe5; }
 
 /* ─── Responsive ──────────────────────────────────────────────────────────── */
-@media (max-width: 820px) {
-  .page { flex-direction: column; height: auto; overflow: auto; }
-  .imageStage {
-    height: 60vw;
-    min-height: 260px;
-    max-height: 400px;
-    width: 100%;
-    flex-shrink: 0;
-    position: relative;
+/* Find your .page rule and update it: */
+.page {
+  display: flex;
+  flex-direction: row;
+  min-height: 100vh;
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .page {
+    flex-direction: column;
+    height: auto;
+    overflow-y: auto;
   }
+
+  .imageStage {
+    height: 92vw;        /* nearly square — big image on phone */
+    min-height: 300px;
+    max-height: 480px;
+    position: relative;
+    flex-shrink: 0;
+  }
+
   .panel {
     width: 100%;
-    min-width: unset;
     height: auto;
-    overflow: visible;
+    overflow-y: visible;
     border-left: none;
-    border-top: 1px solid #dddfe2;
+    border-top: 1px solid #e4e6eb;
+    min-height: 0;
   }
-  .panelInner { overflow: visible; padding: 20px 16px 40px; }
+
+  .panelInner {
+    overflow-y: visible;
+    height: auto;
+  }
 }
