@@ -1,7 +1,5 @@
 'use client';
 
-// app/dashboard/_components/ListingCard.tsx
-
 import Link from "next/link";
 import { DashboardProduct, ProductStatus } from "../types";
 
@@ -9,7 +7,6 @@ import { DashboardProduct, ProductStatus } from "../types";
 
 const statusConfig: Record<ProductStatus, { label: string; className: string }> = {
   active: { label: "Active", className: "bg-emerald-100 text-emerald-700" },
-  paused: { label: "Paused", className: "bg-amber-100 text-amber-700"    },
   sold:   { label: "Sold",   className: "bg-gray-100 text-gray-500"      },
 };
 
@@ -32,7 +29,7 @@ export function ListingCard({ listing }: { listing: DashboardProduct }) {
   return (
     <div
       className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-200 group flex flex-col ${
-        listing.status === "sold" ? "opacity-60" : ""
+        listing.status === "sold" || listing.moderationStatus === "suspended" ? "opacity-60" : ""
       }`}
     >
       {/* Image */}
@@ -47,6 +44,18 @@ export function ListingCard({ listing }: { listing: DashboardProduct }) {
           <StatusBadge status={listing.status} />
         </div>
       </div>
+
+      {/* Moderation banners */}
+      {listing.moderationStatus === "warned" && (
+        <div className="mx-4 mt-3 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-700 font-medium flex items-center gap-2">
+          <span>⚠️</span> This listing has been flagged. Still visible to buyers.
+        </div>
+      )}
+      {listing.moderationStatus === "suspended" && (
+        <div className="mx-4 mt-3 px-3 py-2 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-medium flex items-center gap-2">
+          <span>🚫</span> Listing suspended — hidden from marketplace.
+        </div>
+      )}
 
       {/* Body */}
       <div className="p-4 flex flex-col flex-1">

@@ -3,6 +3,8 @@
   import Link from "next/link";
   import { Mountains_of_Christmas } from "next/font/google";
   import { useState, useEffect, useRef } from "react";
+import FeaturesSection from "./FeaturesEngine";
+import Navbar from "./navbar";
 
   const moc = Mountains_of_Christmas({
     subsets: ["latin"],
@@ -47,6 +49,26 @@
     const started = useRef(false);
 
     useEffect(() => {
+        const handleScroll = (e: MouseEvent) => {
+          const targetEl = e.currentTarget as HTMLAnchorElement;
+          const href = targetEl.getAttribute('href');
+
+          if (href && href.startsWith('#')) {
+            e.preventDefault();
+            const targetId = document.querySelector(href);
+            if (targetId) {
+              targetId.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }
+        };
+
+        const links = document.querySelectorAll('a[href^="#"]');
+        links.forEach(link => link.addEventListener('click', handleScroll as any));
+
+        return () => links.forEach(link => link.removeEventListener('click', handleScroll as any));
+      }, []);
+
+    useEffect(() => {
       const observer = new IntersectionObserver(([entry]) => {
         if (entry.isIntersecting && !started.current) {
           started.current = true;
@@ -76,94 +98,7 @@
   }
 
   // ─── Navbar ───────────────────────────────────────────────────────────────────
-  function Navbar({ userName }: { userName: string | null }) {
-    const [open, setOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
-
-    useEffect(() => {
-      const onScroll = () => setScrolled(window.scrollY > 20);
-      window.addEventListener("scroll", onScroll, { passive: true });
-      return () => window.removeEventListener("scroll", onScroll);
-    }, []);
-
-    const initials = userName
-      ? userName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
-      : null;
-
-    return (
-      <nav
-        className={`w-full sticky top-0 z-50 transition-all duration-300 ${
-          scrolled ? "bg-white/95 backdrop-blur-md shadow-md border-b border-gray-100" : "bg-white/80 backdrop-blur-sm"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-4">
-            {/* Logo */}
-            <Link href="/" className="flex-shrink-0 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center text-white text-sm font-black">D</span>
-              <span className={`${moc.className} text-2xl font-bold text-purple-700 tracking-tight`}>
-                DormDeal
-              </span>
-            </Link>
-
-            {/* Desktop Nav */}
-            <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-600">
-              <Link href="/marketplace" className="hover:text-purple-700 transition-colors">Browse</Link>
-              <Link href="/marketplace?category=stay" className="hover:text-purple-700 transition-colors">Stay</Link>
-              <Link href="/marketplace?category=food" className="hover:text-purple-700 transition-colors">Food</Link>
-            </div>
-
-            {/* Right side */}
-            <div className="hidden md:flex items-center gap-3">
-              <Link
-                href="/createListing"
-                className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5"
-              >
-                + Sell Item
-              </Link>
-              {userName ? (
-                <Link href="/dashboard">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold text-sm border-2 border-purple-200 hover:border-purple-400 transition-colors cursor-pointer">
-                    {initials}
-                  </div>
-                </Link>
-              ) : (
-                <Link
-                  href="/sign-in"
-                  className="px-4 py-2 rounded-xl border-2 border-purple-200 text-purple-700 text-sm font-bold hover:border-purple-400 hover:bg-purple-50 transition-all duration-200"
-                >
-                  Sign In
-                </Link>
-              )}
-            </div>
-
-            {/* Mobile toggle */}
-            <button
-              className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-              onClick={() => setOpen(!open)}
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                {open
-                  ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile menu */}
-        {open && (
-          <div className="md:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-1">
-            {[{href:"/marketplace",label:"Browse Items"},{href:"/marketplace?category=stay",label:"Stay"},{href:"/marketplace?category=food",label:"Food"}].map(l=>(
-              <Link key={l.href} href={l.href} className="block px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors" onClick={()=>setOpen(false)}>{l.label}</Link>
-            ))}
-            <Link href="/createListing" className="block px-3 py-2 rounded-lg text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 transition-colors" onClick={()=>setOpen(false)}>+ Sell Item</Link>
-            {!userName && <Link href="/sign-in" className="block px-3 py-2 rounded-lg text-sm font-bold text-purple-700 border border-purple-200 hover:bg-purple-50 transition-colors text-center" onClick={()=>setOpen(false)}>Sign In</Link>}
-          </div>
-        )}
-      </nav>
-    );
-  }
+  
 
   // ─── Homepage ─────────────────────────────────────────────────────────────────
   export default function Homepage({ userName, userEmail }: HomepageProps) {
@@ -286,6 +221,11 @@
             </div>
           </div>
         </section>
+
+        <section id="features" className="scroll-mt-20">
+              <FeaturesSection />
+        </section>
+        
 
         {/* ── HOW IT WORKS ──────────────────────────────────────────── */}
         <section className="py-16 px-4 bg-white">
@@ -444,25 +384,103 @@
           </section>
         )}
 
-        {/* ── FOOTER ────────────────────────────────────────────────── */}
-        <footer className="bg-gray-900 text-white py-12 px-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-2">
-                <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white text-sm font-black">D</span>
-                <span className={`${moc.className} text-2xl font-bold text-purple-400`}>DormDeal</span>
-              </div>
-              <div className="flex gap-6 text-sm text-gray-400">
-                <Link href="/marketplace" className="hover:text-white transition-colors">Browse</Link>
-                <Link href="/createListing" className="hover:text-white transition-colors">Sell</Link>
-                <Link href="/sign-in" className="hover:text-white transition-colors">Sign In</Link>
-              </div>
-              <p className="text-sm text-gray-500 text-center">
-                © 2025 DormDeal Campus Marketplace. All rights reserved.
+
+
+        {/* ── TRUST & SECURITY SECTION ────────────────────────────────────────── */}
+      <section className="py-16 bg-gray-50 border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            {/* Safety Card */}
+            <div id="safety" className="group p-8 rounded-3xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 scroll-mt-24">
+              <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">🛡️</div>
+              <h3 className="text-lg font-black text-gray-900 mb-3 uppercase tracking-tight">Safety Guide</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                Always meet in <span className="text-gray-900 font-semibold">public campus spots</span> like canteens or libraries. Inspect every item thoroughly before payment. Report any suspicious behavior via our <span className="text-gray-900 font-semibold">Trust-Abuse system</span>.
               </p>
             </div>
+
+            {/* Privacy Card */}
+            <div id="privacy" className="group p-8 rounded-3xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 scroll-mt-24">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">🔒</div>
+              <h3 className="text-lg font-black text-gray-900 mb-3 uppercase tracking-tight">Privacy Policy</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                Built for <span className="text-gray-900 font-semibold">Verified Students only</span>. We strictly store only your college email and basic profile data. Your information is never sold or shared with 3rd party advertisers.
+              </p>
+            </div>
+
+            {/* Terms Card */}
+            <div id="terms" className="group p-8 rounded-3xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 scroll-mt-24">
+              <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">⚖️</div>
+              <h3 className="text-lg font-black text-gray-900 mb-3 uppercase tracking-tight">Terms of Use</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                DormDeal acts as a <span className="text-gray-900 font-semibold">facilitator</span>. Users are responsible for their own transactions. Any misuse of platform features results in an <span className="text-gray-900 font-semibold">immediate permanent ban</span>.
+              </p>
+            </div>
+
           </div>
-        </footer>
+        </div>
+      </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+        {/* ── FOOTER ────────────────────────────────────────────────── */}
+        {/* ── FOOTER ────────────────────────────────────────────────── */}
+      <footer className="bg-gray-900 text-white py-10 px-4 border-t border-gray-800">
+        <div className="max-w-7xl mx-auto">
+          
+          {/* Top Row: Brand & Feature Tags */}
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
+            <div className="flex flex-col items-center md:items-start gap-2">
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white text-xs font-black shadow-lg">D</span>
+                <span className={`${moc.className} text-xl font-bold text-purple-400`}>DormDeal</span>
+              </div>
+              <p className="text-gray-500 text-[11px] leading-relaxed max-w-xs text-center md:text-left">
+                Verified campus hub with <span className="text-gray-300">Live Chat</span> & <span className="text-gray-300">Listing Analytics</span>.
+              </p>
+            </div>
+
+            {/* Feature Pills - Very Compact */}
+            <div className="flex flex-wrap justify-center gap-3">
+              {['📊 Dashboard', '📈 Stats', '💬 Live Chat', '🛡️ Trust-System'].map((feat) => (
+                <span key={feat} className="text-[10px] font-bold text-gray-500 bg-gray-800/50 border border-gray-700/50 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  {feat}
+                </span>
+              ))}
+            </div>
+
+            {/* Navigation - Using the scroll IDs */}
+            <div className="flex gap-6 text-[11px] font-black uppercase tracking-widest text-gray-400">
+              <a href="#safety" className="hover:text-purple-400 transition-colors">Safety</a>
+              <a href="#privacy" className="hover:text-purple-400 transition-colors">Privacy</a>
+              <a href="#terms" className="hover:text-purple-400 transition-colors">Terms</a>
+            </div>
+          </div>
+
+          {/* Bottom Bar: Ultra Slim */}
+          <div className="pt-6 border-t border-gray-800/50 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em]">
+              © 2026 DormDeal · By Aryan
+            </p>
+            
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/5 border border-green-500/10">
+              <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse"></span>
+              <span className="text-[9px] text-green-500/80 font-black uppercase tracking-tighter">Trust System Active</span>
+            </div>
+          </div>
+        </div>
+      </footer>
       </div>
     );
   }

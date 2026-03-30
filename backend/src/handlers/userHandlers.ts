@@ -2,93 +2,89 @@ import type { Request, Response } from "express";
 import crypto from "crypto";
 import { prisma } from "../db.js";
 import { hashPassword, comparePasswords } from "../actions/passwordRelated.js";
-import { getUserfromSession } from "./session.js";
+import { getUserfromSession } from "../actions/session.js";
 
 
-
-
-
-
-export async function meHandler(req : Request , res : Response){
-    try {
-
-        const userInfo = res.locals.user;
-
-        if (!userInfo || !userInfo.id) {
-            return res.status(401).json({ error: "User not authenticated or ID missing" });
-            }
-
-        const user = await prisma.user.findUnique({
-            where: { id: userInfo.id },
-            select: {
-                // Profile Fields
-                id: true,
-                name: true,
-                email: true,
-                college: true,
-                branch: true,
-                year: true,
-                createdAt: true,
-                totalViews: true, // This is your counter in the User model
-
-                // This is where we get the "Total Numbers" for the dashboard
-                _count: {
-                    select: {
-                        products: true,            // Total listings ever
-                        buyerConversations: true,  // Chats as a buyer
-                        sellerConversations: true, // Chats as a seller
-                    }
-                },
-
-                // This gets the ACTUAL products so we can filter by status
-                products: {
-                    select: {
-                        id: true,
-                        title: true,
-                        price: true,
-                        status: true,
-                        views: true,
-                        image: true,
-                    }
-                }
-            }
-        })
-
-
-
-        const dashboardData = {
-            profile: {
-                name: user!.name,
-                email: user!.email,
-                college: user!.college,
-                branch: user!.branch,
-                year: user!.year,
-                totalViews : user!.totalViews,
-                joined: user!.createdAt,
-            },
-            stats: {
-                totalViews: user!.totalViews,
-                // We filter the products array we just fetched
-                activeListings: user!.products.filter(p => p.status === 'active').length,
-                pausedListings: user!.products.filter(p => p.status === 'paused').length,
-                soldItems: user!.products.filter(p => p.status === 'sold').length,
-                totalConversations: user!._count.buyerConversations + user!._count.sellerConversations,
-            },
-            // The actual lists of items to show on the dashboard
-            items: {
-                active: user!.products.filter(p => p.status === 'active'),
-                paused: user!.products.filter(p => p.status === 'paused'),
-                sold: user!.products.filter(p => p.status === 'sold'),
-            }
-        };
-
-
-        res.status(200).send(dashboardData);
-
-    } catch (error) {
-        console.error("Error in GET /dashboard/me:", error);
-        return res.status(500).send({ msg: "Internal server error" });
+export async function meHandler(req: Request, res: Response) {
+  try {
+    const userInfo = res.locals.user;
+    if (!userInfo?.id) {
+      return res.status(401).json({ error: "User not authenticated or ID missing" });
     }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userInfo.id },
+      select: {
+        id:         true,
+        name:       true,
+        email:      true,
+        college:    true,
+        branch:     true,
+        year:       true,
+        createdAt:  true,
+        totalViews: true,
+        trustScore: true,
+
+        _count: {
+          select: {
+            products:            true,
+            buyerConversations:  true,
+            sellerConversations: true,
+          },
+        },
+
+        products: {
+          select: {
+            id:               true,
+            title:            true,
+            price:            true,
+            status:           true,
+            moderationStatus: true,
+            reportWeight:     true,
+            views:            true,
+            image:            true,
+          },
+        },
+      },
+    });
+
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    // Separate by status and moderationStatus
+    const activeProducts      = user.products.filter(p => p.status === 'active' && p.moderationStatus !== 'suspended');
+    const soldProducts        = user.products.filter(p => p.status === 'sold');
+    const underReviewProducts = user.products.filter(p => p.moderationStatus === 'suspended');
+
+    const dashboardData = {
+      profile: {
+        name:       user.name,
+        email:      user.email,
+        college:    user.college,
+        branch:     user.branch,
+        year:       user.year,
+        totalViews: user.totalViews,
+        trustScore: user.trustScore,
+        joined:     user.createdAt,
+      },
+      stats: {
+        totalViews:        user.totalViews,
+        activeListings:    activeProducts.length,
+        soldItems:         soldProducts.length,
+        underReview:       underReviewProducts.length,
+        totalConversations: user._count.buyerConversations + user._count.sellerConversations,
+      },
+      items: {
+        active:      activeProducts,
+        sold:        soldProducts,
+        underReview: underReviewProducts,
+      },
+    };
+
+    return res.status(200).json(dashboardData);
+  } catch (error) {
+    console.error("Error in GET /dashboard/me:", error);
+    return res.status(500).json({ msg: "Internal server error" });
+  }
 }
 
 

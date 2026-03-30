@@ -5,6 +5,7 @@
   import { ImageSlider, MapsandChatbot, ButtonsComponent, DescriptionComponent } from "../_components/clientproduct";
   import s from "../_components/product.module.css";
   import { TrackView } from "../_components/trackview";
+  import { ReportModal } from "./_components/Reportmodel";
 
   type Props = {
     params: { productId: string };
@@ -18,6 +19,34 @@
     return s.badgeGray;
   }
 
+
+
+let productData: {
+  title: string;
+  price: number;
+  description: string;
+  views: number;
+  category: string;
+  condition: string | null;
+  image: string[];
+  createdAt: string;
+  moderationStatus: string;   // ← ADD THIS
+  owner: { id: string; name: string; email: string; createdAt?: string };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
   const ProductBuying = async ({ params }: Props) => {
     const { productId } = await params;
     const cookieStore = await cookies();
@@ -26,17 +55,7 @@
     let isAuthenticated = true;
     let buyerId: string | undefined;
 
-    let productData: {
-      title: string;
-      price: number;
-      description: string;
-      views: number;      // ← add this
-      category: string;
-      condition: string | null;
-      image: string[];
-      createdAt: string;
-      owner: { id: string; name: string; email: string; createdAt?: string };
-    };
+    
 
 
     try {
@@ -99,7 +118,7 @@
     // To test slider: images array below is hardcoded to repeat the same image 3 times
     // REMOVE this and just use `image` directly once backend sends multiple images
     const sliderImages = image;
-
+console.log({ buyerId, sellerId })
     return (
       <div className={s.page}>
         <TrackView productId={productId} />
@@ -130,6 +149,25 @@
           <div className={s.panelInner}>
 
           {/* Title */}
+          {productData.moderationStatus === 'warned' && (
+            <div style={{
+              background: '#fffbeb',
+              border: '1px solid #fcd34d',
+              borderRadius: 12,
+              padding: '10px 14px',
+              marginBottom: 12,
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 8,
+            }}>
+                <span style={{ fontSize: 14 }}>⚠️</span>
+                <p style={{ fontSize: 12, color: '#92400e', margin: 0, lineHeight: 1.4 }}>
+                  This listing has been flagged by the community. Proceed with caution.
+                </p>
+              </div>
+            )}
+
+
             <h1 className={s.title}>{title}</h1>
 
             {/* Meta: time + views */}
@@ -198,6 +236,13 @@
             </div>
 
             <div className={s.divider} />
+
+            {isAuthenticated && buyerId && buyerId !== sellerId && (
+              <>
+                <ReportModal productId={productId} />
+              </>
+            )}
+            
 
             {/* Details list */}
             <p className={s.sectionLabel}>Details</p>

@@ -141,7 +141,7 @@ export default function EditProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f8f7f4]">
-        <Navbar />
+        {!loading && <Navbar userName={form.name || "User"} />}
         <main className="max-w-2xl mx-auto px-4 py-10 space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 animate-pulse">
@@ -157,7 +157,7 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#f8f7f4]">
-      <Navbar />
+      {!loading && <Navbar userName={form.name || "User"} />}
       {toast && <Toast msg={toast.msg} type={toast.type} />}
 
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 space-y-5">

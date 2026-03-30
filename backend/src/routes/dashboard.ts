@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { profileHandler, updateprofileHandler, changePasswordHandler , meHandler } from "../actions/userHandlers.js";
+import { profileHandler, updateprofileHandler, changePasswordHandler , meHandler } from "../handlers/userHandlers.js";
 import { requireAuth } from "../middlewarecheck.js";
-import { deleteListingHandler, getListingHandler, updateListingHandler } from "../actions/listingHandlers.js";
+import { deleteListingHandler, getListingHandler, updateListingHandler } from "../handlers/listingHandlers.js";
 
 const router = Router();
 

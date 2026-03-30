@@ -13,29 +13,43 @@ generator client {
 
 enum ProductStatus {
   active
-  paused
   sold
+  // NOTE: "paused" removed — status is now only user-controlled (active/sold).
+  // System moderation uses the separate ModerationStatus field.
 }
 
-// Supported Delhi-area colleges
+enum ModerationStatus {
+  clean
+  warned      // reportWeight >= 3 — banner shown on listing, still visible
+  suspended   // reportWeight >= 7 — hidden from marketplace, seller notified
+}
+
+enum ReportReason {
+  spam
+  price_scam
+  duplicate
+  inappropriate
+  already_sold
+  other
+}
+
 enum College {
-  MAIT    // Maharaja Agrasen Institute of Technology
-  DTU    // Delhi Technological University
-  IITD   // Indian Institute of Technology Delhi
-  GGSIPU // Guru Gobind Singh Indraprastha University
-  MSIT   // Maharaja Surajmal Institute of Technology
-  NSUT   // Netaji Subhas University of Technology
-  IIITD  // Indraprastha Institute of Information Technology Delhi
-  BVCOE  // Bharati Vidyapeeth's College of Engineering
+  MAIT
+  DTU
+  IITD
+  GGSIPU
+  MSIT
+  NSUT
+  IIITD
+  BVCOE
 }
-
 
 enum Branch {
-  CSE 
-  IT 
+  CSE
+  IT
   ECE
-  EEE 
-  ME 
+  EEE
+  ME
   CE
   BT
   CHE
@@ -44,7 +58,7 @@ enum Branch {
 }
 
 enum Category {
-  general 
+  general
   books
   electronics
   furniture
@@ -56,7 +70,7 @@ enum Category {
 }
 
 enum Condition {
-  new 
+  new
   like_new
   good
   fair
@@ -66,53 +80,107 @@ enum Condition {
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 model User {
-  id         String   @id @default(uuid())
-  name       String
-  email      String   @unique
-  password   String
-  salt       String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  password    String
+  salt        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 
-  // Profile fields
-  college    College           // nullable so existing rows don't break
-  branch     Branch?    @default(NotSpecified)        
-  year       Int?        @default(0)    // 1 | 2 | 3 | 4
+  // Profile
+  college     College
+  branch      Branch?  @default(NotSpecified)
+  year        Int?     @default(0)
 
-  // Denormalised counters (updated via Prisma middleware / triggers)
-  totalViews Int @default(0)
+  // Counters
+  totalViews  Int      @default(0)
+
+  // Trust & abuse system
+  // trustScore: starts at 100, floor 0, cap 150
+  // Used to weight reports: reportWeight += reporter.trustScore / 100
+  trustScore  Int      @default(100)
+  strikeCount Int      @default(0)
 
   // Relations
   products            Product[]
   sentMessages        Message[]
-  buyerConversations  Conversation[] @relation("Buyer")
-  sellerConversations Conversation[] @relation("Seller")
+  buyerConversations  Conversation[]  @relation("Buyer")
+  sellerConversations Conversation[]  @relation("Seller")
+  reports             Report[]
+  moderationEvents    ModerationEvent[]
 }
 
 model Product {
-  id          String        @id @default(cuid())
+  id          String           @id @default(cuid())
   title       String
   price       Int
-  description String        @db.Text
-  rating      Float         @default(0)
+  description String           @db.Text
   category    Category
   condition   Condition
   image       String[]
-  status      ProductStatus @default(active)   
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @default(now()) @updatedAt
-  views       Int           @default(0)
+  status      ProductStatus    @default(active)
+
+  // ─── Moderation fields ────────────────────────────────────────
+  moderationStatus ModerationStatus @default(clean)
+  reportWeight     Float            @default(0)   // weighted sum, recalculated on each report
+  flaggedAt        DateTime?                       // set when first leaving clean state
+  lastReportAt     DateTime?                       // updated on every new report — drives time decay
+  disputeUsed      Boolean          @default(false) // seller can dispute once per listing
+  disputeAt        DateTime?                        // when dispute was filed (for 72h cooldown in Redis)
+  // ──────────────────────────────────────────────────────────────
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now()) @updatedAt
+  views       Int              @default(0)
 
   // Relations
-  owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId       String
-  conversations Conversation[]
+  owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId          String
+  conversations    Conversation[]
+  reports          Report[]
+  moderationEvents ModerationEvent[]
 
   @@index([ownerId])
   @@index([category])
   @@index([createdAt])
   @@index([views])
-  @@index([status])      // ← index for dashboard filter queries
+  @@index([status])
+  @@index([moderationStatus])
+  @@index([lastReportAt])   // for time-decay cron query
+}
+
+// One row per report. Unique on (productId, reporterId) enforced at DB level.
+model Report {
+  id         String       @id @default(uuid())
+  productId  String
+  product    Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  reporterId String
+  reporter   User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  reason     ReportReason
+  note       String?      @db.Text   // optional free-text from reporter
+  createdAt  DateTime     @default(now())
+
+  @@unique([productId, reporterId])   // one report per user per listing, enforced in DB
+  @@index([productId])
+  @@index([reporterId])
+}
+
+// Immutable audit log — every moderation state transition is written here.
+// userId is null when the transition was triggered by the cron (system).
+model ModerationEvent {
+  id         String           @id @default(uuid())
+  productId  String
+  product    Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId     String?          // null = system / cron
+  user       User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  fromStatus ModerationStatus
+  toStatus   ModerationStatus
+  reason     String           @db.Text
+  createdAt  DateTime         @default(now())
+
+  @@index([productId])
+  @@index([createdAt])
 }
 
 model Conversation {
@@ -146,7 +214,6 @@ model Message {
   @@index([senderId])
 }
 
-// ─── Migration note ───────────────────────────────────────────────────────────
-// Run after updating this file:
-//   npx prisma migrate dev --name add_user_profile_product_status
-//npx prisma generate
+// ─── Migration ────────────────────────────────────────────────────────────────
+// npx prisma migrate dev --name moderation_system
+// npx prisma generate

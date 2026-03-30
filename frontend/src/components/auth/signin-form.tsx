@@ -33,6 +33,7 @@ export function SigninForm() {
       );
 
       if (res.data.authStatus) {
+        router.refresh();
         router.push("/");
       }
     } catch (err: any) {

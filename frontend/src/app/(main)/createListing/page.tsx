@@ -278,7 +278,7 @@ export default function CreateListingPage() {
       if (!response.data.taskStatus) {
         throw new Error("Failed to publish listing");
       }
-
+      router.refresh();
       router.push(`/marketplace/${response.data.product.id}`);
     } catch (err: any) {
       setError(err.message ?? "Failed to create listing. Please try again.");
@@ -291,7 +291,7 @@ export default function CreateListingPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f7f4] font-sans">
-      <Navbar />
+      <Navbar/>
 
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 pb-24">
 

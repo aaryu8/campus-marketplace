@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ListingCard , DashboardProduct } from "../types";
+import { ListingCard, DashboardProduct } from "../types";
 
+type FilterKey = "all" | "active" | "sold" | "underReview";
 
-function FilterTab({
-  label, active, onClick, count,
-}: {
+function FilterTab({ label, active, onClick, count }: {
   label: string; active: boolean; onClick: () => void; count?: number;
 }) {
   return (
@@ -19,7 +18,9 @@ function FilterTab({
     >
       {label}
       {count !== undefined && (
-        <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${active ? "bg-purple-500 text-white" : "bg-gray-200 text-gray-600"}`}>
+        <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
+          active ? "bg-purple-500 text-white" : "bg-gray-200 text-gray-600"
+        }`}>
           {count}
         </span>
       )}
@@ -28,10 +29,15 @@ function FilterTab({
 }
 
 export default function ListingSection({ listings }: { listings: DashboardProduct[] }) {
-  const [filter, setFilter] = useState<"all" | "active" | "paused" | "sold">("all");
+  const [filter, setFilter] = useState<FilterKey>("all");
 
-  const filtered =
-    filter === "all" ? listings : listings.filter((l) => l.status === filter);
+  const filtered = filter === "all"
+    ? listings
+    : filter === "underReview"
+      ? listings.filter(l => l.moderationStatus === "suspended")
+      : listings.filter(l => l.status === filter && l.moderationStatus !== "suspended");
+
+  const underReviewCount = listings.filter(l => l.moderationStatus === "suspended").length;
 
   return (
     <div>
@@ -39,10 +45,33 @@ export default function ListingSection({ listings }: { listings: DashboardProduc
         <h2 className="text-lg font-bold text-gray-900">My Listings</h2>
 
         <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
-          <FilterTab label="All"    active={filter === "all"}    onClick={() => setFilter("all")}    count={listings.length} />
-          <FilterTab label="Active" active={filter === "active"} onClick={() => setFilter("active")} count={listings.filter((l) => l.status === "active").length} />
-          <FilterTab label="Paused" active={filter === "paused"} onClick={() => setFilter("paused")} count={listings.filter((l) => l.status === "paused").length} />
-          <FilterTab label="Sold"   active={filter === "sold"}   onClick={() => setFilter("sold")}   count={listings.filter((l) => l.status === "sold").length} />
+          <FilterTab
+            label="All"
+            active={filter === "all"}
+            onClick={() => setFilter("all")}
+            count={listings.length}
+          />
+          <FilterTab
+            label="Active"
+            active={filter === "active"}
+            onClick={() => setFilter("active")}
+            count={listings.filter(l => l.status === "active" && l.moderationStatus !== "suspended").length}
+          />
+          <FilterTab
+            label="Sold"
+            active={filter === "sold"}
+            onClick={() => setFilter("sold")}
+            count={listings.filter(l => l.status === "sold").length}
+          />
+          {/* Only show Under Review tab if they actually have flagged listings */}
+          {underReviewCount > 0 && (
+            <FilterTab
+              label="Under Review"
+              active={filter === "underReview"}
+              onClick={() => setFilter("underReview")}
+              count={underReviewCount}
+            />
+          )}
         </div>
       </div>
 

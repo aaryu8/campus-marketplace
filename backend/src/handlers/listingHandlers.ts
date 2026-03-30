@@ -1,3 +1,7 @@
+// handlers/listingHandler.ts
+// Only the updateListingHandler changes — added moderation guard.
+// getListingHandler and deleteListingHandler are unchanged.
+
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { prisma } from "../db.js";
@@ -11,7 +15,8 @@ const updateListingSchema = z.object({
   description: z.string().min(10).max(1000).transform((s) => s.trim()).optional(),
   category:    z.enum(["general","books","electronics","furniture","clothes","tickets","sports","transport","hostel"]).optional(),
   condition:   z.enum(["new","like_new","good","fair","poor"]).optional(),
-  status:      z.enum(["active","paused","sold"]).optional(),
+  // "paused" removed — status is now only active | sold
+  status:      z.enum(["active","sold"]).optional(),
   image:       z.array(z.string().min(1)).max(5).optional(),
 });
 
@@ -20,17 +25,23 @@ const updateListingSchema = z.object({
 export async function getListingHandler(req: Request, res: Response) {
   try {
     const userId = res.locals.user?.id as string | undefined;
-    const id     = req.params.id as string; // req.params values are always string
+    const id     = req.params.id as string;
 
-    const product = await prisma.product.findUnique({ where: { id } });
+    const product = await prisma.product.findUnique(
+      { 
+        where: { id },
+        include: {
+          owner : {
+            select : {
+              name : true,
+            }
+          }
+        }
+      }
+    );
 
-    if (!product) {
-      return res.status(404).json({ msg: "Listing not found" });
-    }
-
-    if (product.ownerId !== userId) {
-      return res.status(403).json({ msg: "Forbidden" });
-    }
+    if (!product)                   return res.status(404).json({ msg: "Listing not found" });
+    if (product.ownerId !== userId) return res.status(403).json({ msg: "Forbidden" });
 
     return res.status(200).json({ product });
   } catch (error) {
@@ -41,7 +52,6 @@ export async function getListingHandler(req: Request, res: Response) {
 
 // ─── PATCH listing ────────────────────────────────────────────────────────────
 
-
 export async function updateListingHandler(req: Request, res: Response) {
   try {
     const userId = res.locals.user?.id as string | undefined;
@@ -51,6 +61,16 @@ export async function updateListingHandler(req: Request, res: Response) {
     if (!existing)                    return res.status(404).json({ msg: "Listing not found" });
     if (existing.ownerId !== userId)  return res.status(403).json({ msg: "Forbidden" });
 
+    // ── Moderation guard ──────────────────────────────────────
+    // Suspended listings are locked — seller cannot edit or change status.
+    // They must file a dispute first via POST /api/marketplace/:productId/dispute.
+    if (existing.moderationStatus === 'suspended') {
+      return res.status(403).json({
+        msg: "This listing is suspended and cannot be edited. File a dispute to contest it.",
+        moderationStatus: 'suspended',
+      });
+    }
+
     const parsed = updateListingSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ msg: "Invalid data", errors: parsed.error.flatten().fieldErrors });
@@ -58,8 +78,6 @@ export async function updateListingHandler(req: Request, res: Response) {
 
     const { title, price, description, category, condition, status, image } = parsed.data;
 
-    // Build update object explicitly — avoids the Object.fromEntries unknown-type
-    // problem that breaks Prisma enum fields at runtime
     const product = await prisma.product.update({
       where: { id },
       data: {
@@ -75,7 +93,7 @@ export async function updateListingHandler(req: Request, res: Response) {
       select: {
         id: true, title: true, price: true,
         category: true, condition: true, status: true,
-        image: true, updatedAt: true,
+        moderationStatus: true, image: true, updatedAt: true,
       },
     });
 
@@ -85,6 +103,7 @@ export async function updateListingHandler(req: Request, res: Response) {
     return res.status(500).json({ msg: "Internal server error" });
   }
 }
+
 // ─── DELETE listing ───────────────────────────────────────────────────────────
 
 export async function deleteListingHandler(req: Request, res: Response) {
@@ -93,12 +112,8 @@ export async function deleteListingHandler(req: Request, res: Response) {
     const id     = req.params.id as string;
 
     const existing = await prisma.product.findUnique({ where: { id } });
-    if (!existing) {
-      return res.status(404).json({ msg: "Listing not found" });
-    }
-    if (existing.ownerId !== userId) {
-      return res.status(403).json({ msg: "Forbidden" });
-    }
+    if (!existing)                    return res.status(404).json({ msg: "Listing not found" });
+    if (existing.ownerId !== userId)  return res.status(403).json({ msg: "Forbidden" });
 
     await prisma.product.delete({ where: { id } });
 

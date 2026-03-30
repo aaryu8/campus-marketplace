@@ -65,11 +65,15 @@ export async function createListingHandler(req: Request, res: Response) {
 
 export async function getProductsHandler(req: Request, res: Response) {
     try {
-        const products = await prisma.product.findMany({
-          where : {
-            status : "active"
-          }
-        });
+       const products = await prisma.product.findMany({
+        where: { 
+          status: "active",
+          moderationStatus: { not: "suspended" }
+        }
+      });
+
+  
+
         return res.status(200).send(products);
     } catch (error) {
         console.error(error);
@@ -88,8 +92,7 @@ export async function getProductHandler(req: Request, res: Response) {
                 title: true,
                 price: true,
                 description: true,
-                rating: true,
-                views: true,      // ← add this
+                views: true,     
                 category: true,
                 condition: true,
                 image: true,

@@ -1,8 +1,4 @@
-
 'use client';
-
-// app/dashboard/edit-listing/page.tsx
-// Route: /dashboard/edit-listing?id=<productId>
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,8 +14,8 @@ const API = "http://localhost:4000";
 type Category =
   | "general" | "books" | "electronics" | "furniture" | "clothes"
   | "tickets" | "sports" | "transport" | "hostel";
-type Condition    = "new" | "like_new" | "good" | "fair" | "poor";
-type ProductStatus = "active" | "paused" | "sold";
+type Condition     = "new" | "like_new" | "good" | "fair" | "poor";
+type ProductStatus = "active" | "sold";
 
 interface ListingForm {
   title:       string;
@@ -58,7 +54,6 @@ const CONDITIONS: { value: Condition; label: string; desc: string }[] = [
 
 const STATUSES: { value: ProductStatus; label: string; desc: string; color: string }[] = [
   { value: "active", label: "Active", desc: "Visible to all buyers",       color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-  { value: "paused", label: "Paused", desc: "Hidden temporarily",          color: "bg-amber-100 text-amber-700 border-amber-200"       },
   { value: "sold",   label: "Sold",   desc: "Mark as sold and archive it", color: "bg-gray-100 text-gray-500 border-gray-200"          },
 ];
 
@@ -189,16 +184,17 @@ function DeleteModal({ onConfirm, onCancel, deleting }: {
 export default function EditListingPage() {
   const router       = useRouter();
   const searchParams = useSearchParams();
-  const listingId    = searchParams.get("id"); // comes from ListingCard href
+  const listingId    = searchParams.get("id");
 
-  const [form, setForm]         = useState<ListingForm>({ title: "", price: "", description: "", category: "", condition: "", status: "active", images: [] });
-  const [original, setOriginal] = useState<ListingForm | null>(null);
-  const [newFiles, setNewFiles] = useState<File[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [saving, setSaving]     = useState(false);
+  const [form, setForm]             = useState<ListingForm>({ title: "", price: "", description: "", category: "", condition: "", status: "active", images: [] });
+  const [original, setOriginal]     = useState<ListingForm | null>(null);
+  const [newFiles, setNewFiles]     = useState<File[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [saving, setSaving]         = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting]     = useState(false);
-  const [toast, setToast]       = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [toast, setToast]           = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [ownerName, setOwnerName]   = useState<string | null>(null);
 
   const set = (key: keyof ListingForm, value: any) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -208,12 +204,9 @@ export default function EditListingPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // ── Fetch listing by id from search param ────────────────────────────────────
+  // ── Fetch listing ─────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!listingId) {
-      router.push("/dashboard");
-      return;
-    }
+    if (!listingId) { router.push("/dashboard"); return; }
 
     (async () => {
       try {
@@ -221,6 +214,11 @@ export default function EditListingPage() {
           withCredentials: true,
         });
         const p = res.data.product;
+
+        // read name directly from the response object, not from state
+        const name = p.owner?.name ?? null;
+        setOwnerName(name);
+
         const loaded: ListingForm = {
           title:       p.title       ?? "",
           price:       String(p.price ?? ""),
@@ -234,16 +232,16 @@ export default function EditListingPage() {
         setOriginal(loaded);
       } catch (err: any) {
         const status = err?.response?.status;
-        if (status === 401) router.push("/sign-in");
+        if (status === 401)      router.push("/sign-in");
         else if (status === 403) router.push("/dashboard");
-        else showToast("Failed to load listing.", "error");
+        else                     showToast("Failed to load listing.", "error");
       } finally {
         setLoading(false);
       }
     })();
   }, [listingId, router]);
 
-  // ── Dirty check ──────────────────────────────────────────────────────────────
+  // ── Dirty check ───────────────────────────────────────────────────────────────
   const isDirty =
     !!original &&
     (JSON.stringify(form) !== JSON.stringify(original) || newFiles.length > 0);
@@ -262,7 +260,7 @@ export default function EditListingPage() {
   const handleRemoveNew = (idx: number) =>
     setNewFiles((prev) => prev.filter((_, i) => i !== idx));
 
-  // ── Upload new files to Supabase ──────────────────────────────────────────────
+  // ── Upload to Supabase ────────────────────────────────────────────────────────
   const uploadNewImages = async (): Promise<string[]> => {
     const urls: string[] = [];
     for (const file of newFiles) {
@@ -287,7 +285,7 @@ export default function EditListingPage() {
 
   // ── Save ──────────────────────────────────────────────────────────────────────
   const handleSave = async () => {
-    if (!isDirty || !listingId) return;
+    if (!isDirty || !listingId)  return;
     if (!form.category)          { showToast("Please select a category.", "error");  return; }
     if (!form.condition)         { showToast("Please select a condition.", "error"); return; }
     if (Number(form.price) <= 0) { showToast("Price must be greater than 0.", "error"); return; }
@@ -330,7 +328,7 @@ export default function EditListingPage() {
     try {
       await axios.delete(`${API}/api/dashboard/listings/${listingId}`, { withCredentials: true });
       router.push("/dashboard");
-      router.refresh(); // ← forces Next.js to re-fetch the dashboard server component
+      router.refresh();
     } catch (err: any) {
       showToast(err.response?.data?.msg ?? "Delete failed.", "error");
       setShowDelete(false);
@@ -343,7 +341,8 @@ export default function EditListingPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f8f7f4]">
-        <Navbar />
+        {/* ownerName is null here — Navbar handles null gracefully */}
+        {!loading && <Navbar userName={ownerName || "User"} />}
         <main className="max-w-2xl mx-auto px-4 py-10 space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 animate-pulse">
@@ -360,7 +359,8 @@ export default function EditListingPage() {
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#f8f7f4]">
-      <Navbar />
+      {/* ownerName is populated by the time loading=false */}
+      {!loading && <Navbar userName={ownerName || "User"} />}
       {toast      && <Toast msg={toast.msg} type={toast.type} />}
       {showDelete && <DeleteModal onConfirm={handleDelete} onCancel={() => setShowDelete(false)} deleting={deleting} />}
 
@@ -380,7 +380,7 @@ export default function EditListingPage() {
           </div>
         </div>
 
-        {/* Preview pill — shows current values live as you type */}
+        {/* Preview pill */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
           {form.images[0] ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -395,9 +395,9 @@ export default function EditListingPage() {
             <p className="text-purple-700 font-bold text-sm">₹{form.price || "—"}</p>
           </div>
           <span className={`text-xs font-bold px-2.5 py-1 rounded-full border flex-shrink-0 ${
-            form.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-            form.status === "paused" ? "bg-amber-50 text-amber-700 border-amber-200" :
-            "bg-gray-100 text-gray-500 border-gray-200"
+            form.status === "active"
+              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              : "bg-gray-100 text-gray-500 border-gray-200"
           }`}>
             {form.status.charAt(0).toUpperCase() + form.status.slice(1)}
           </span>
