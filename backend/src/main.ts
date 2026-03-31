@@ -31,7 +31,6 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 }));
 
-app.options('(.*)', cors());
 
 app.use(cookieParser());
 app.use(express.json());
