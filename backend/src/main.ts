@@ -21,7 +21,10 @@ const server = http.createServer(app);
 
 // ✅ Middleware
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: [
+        'http://localhost:3000',
+        'https://campus-marketplace-production-c93f.up.railway.app'
+    ],
     credentials: true,
 }));
 
