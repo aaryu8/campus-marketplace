@@ -150,7 +150,7 @@ export function SignupForm() {
               type="text"
               value={form.name}
               onChange={(e) => set("name")(e.target.value)}
-              placeholder="Aryan Sharma"
+              placeholder="Aryan Kaushik"
               className={inputCls}
             />
           </div>

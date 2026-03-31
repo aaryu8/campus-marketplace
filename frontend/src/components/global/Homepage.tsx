@@ -147,7 +147,7 @@ import Navbar from "./navbar";
                   </button>
                 </Link>
                 {!userName ? (
-                  <Link href="/sign-in">
+                  <Link href="/sign-up">
                     <button className="w-full sm:w-auto px-8 py-3.5 rounded-2xl border-2 border-gray-200 text-gray-700 font-bold text-base hover:border-purple-300 hover:bg-purple-50 hover:-translate-y-0.5 transition-all duration-200">
                       Sign Up Free
                     </button>
