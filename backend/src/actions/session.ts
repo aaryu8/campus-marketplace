@@ -26,15 +26,13 @@ export async function createSession( user : UserSession , res : Response){
       ex: SESSION_EXPIRATION_SECONDS,
     });
 
-    res.cookie(
-      "session_id",
-      `${sessionId}`,{
-        httpOnly : true,
-        secure : false, //only turn on for https
-        sameSite : "lax",
-        maxAge : SESSION_EXPIRATION_SECONDS * 1000
-      }
-    );
+    res.cookie("session_id", `${sessionId}`, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',  
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',  
+      maxAge: SESSION_EXPIRATION_SECONDS * 1000,
+      path: '/',
+    });
 }
 
 //this function auto checks if cookie and redis client both match or not 
@@ -56,7 +54,12 @@ export async function removeUserfromSession(req: Request , res:Response){
   if(sessionId == null ) return null;
 
   await redisClient.del(`session:${sessionId}`);
-  res.clearCookie('session_id' , {httpOnly : true , path : '/'});
+  res.clearCookie('session_id', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    path: '/',
+  });
   return true;
 }
 
