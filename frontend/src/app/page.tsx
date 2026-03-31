@@ -14,7 +14,7 @@ const cookieHeader = cookieStore.getAll()
   .map(c => `${c.name}=${c.value}`)
   .join("; ");
 
-const response = await axios.get("http://localhost:4000/api/auth/me", {
+const response = await axios.get("https://campus-marketplace-production-c93f.up.railway.app/api/auth/me", {
   headers: {
     Cookie: cookieHeader  // ← proper format: "session_id=abc123; other=xyz"
   },

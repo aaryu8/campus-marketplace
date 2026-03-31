@@ -13,7 +13,7 @@ export function TrackView({ productId }: { productId: string }) {
       const { sessionId } = await sessionRes.json();
 
       const res = await fetch(
-        `http://localhost:4000/api/marketplace/${productId}/view`,
+        `https://campus-marketplace-production-c93f.up.railway.app/api/marketplace/${productId}/view`,
         {
           method: 'POST',
           headers: { 'x-session-id': sessionId },  

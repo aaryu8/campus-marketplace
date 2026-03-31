@@ -28,7 +28,7 @@ const InboxPage = async () => {
   try {
     const res = await axios({
       method: "GET",
-      url: "http://localhost:4000/api/chat/inbox",
+      url: "https://campus-marketplace-production-c93f.up.railway.app/api/chat/inbox",
       headers: { Cookie: `session_id=${sessionCookie.value}` },
     });
     

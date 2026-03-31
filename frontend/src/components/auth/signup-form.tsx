@@ -102,7 +102,7 @@ export function SignupForm() {
     try {
       // Payload matches exactly what Postman sent and backend expects
       const res = await axios.post(
-        "http://localhost:4000/api/auth/sign-up",
+        "https://campus-marketplace-production-c93f.up.railway.app/api/auth/sign-up",
         {
           name:     form.name.trim(),
           email:    form.email.trim().toLowerCase(),

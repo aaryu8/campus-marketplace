@@ -23,7 +23,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
   try {
     const response = await axios({
       method: "GET",
-      url: "http://localhost:4000/api/marketplace/",
+      url: "https://campus-marketplace-production-c93f.up.railway.app/api/marketplace/",
     });
     products = response.data;
   } catch (err) {
@@ -34,7 +34,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
   try {
     const cookieStore = await cookies();
     const cookieString = cookieStore.toString();
-    const res = await axios.get("http://localhost:4000/api/auth/me", {
+    const res = await axios.get("https://campus-marketplace-production-c93f.up.railway.app/api/auth/me", {
       withCredentials: true,
       headers: { Cookie: cookieString },
     });

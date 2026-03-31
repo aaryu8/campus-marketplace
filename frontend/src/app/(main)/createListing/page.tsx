@@ -206,7 +206,7 @@ const [authChecked, setAuthChecked] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
 useEffect(() => {
-  axios.get("http://localhost:4000/api/auth/me", { withCredentials: true })
+  axios.get("https://campus-marketplace-production-c93f.up.railway.app/api/auth/me", { withCredentials: true })
     .then(res => {
       if (!res.data.LoggedIn) {
         router.replace("/sign-in");
@@ -297,7 +297,7 @@ if (!authChecked) return (
 
       const response = await axios({
         method: "post",
-        url: "http://localhost:4000/api/marketplace/createListing",
+        url: "https://campus-marketplace-production-c93f.up.railway.app/api/marketplace/createListing",
         withCredentials: true,
         data: payload,
       });

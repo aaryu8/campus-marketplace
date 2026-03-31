@@ -8,7 +8,7 @@ import Navbar from "@/components/global/navbar";
 import { COLLEGES, BRANCHES } from "@/components/auth/signup-form";
 
 const ORDINALS = ["1st", "2nd", "3rd", "4th"];
-const API = "http://localhost:4000";
+const API = "https://campus-marketplace-production-c93f.up.railway.app";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -71,7 +71,7 @@ export default function EditProfilePage() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/api/dashboard/profile/me`, { withCredentials: true });
+        const res = await axios.get(`https://campus-marketplace-production-c93f.up.railway.app/api/dashboard/profile/me`, { withCredentials: true });
         const d = res.data.user; // { name, email, college, branch, year }
         const profile: ProfileData = {
           name:    d.name    ?? "",
@@ -124,7 +124,7 @@ export default function EditProfilePage() {
     setPwLoading(true);
     try {
       await axios.post(
-        `http://localhost:4000/api/dashboard/change-password`,
+        `https://campus-marketplace-production-c93f.up.railway.app/api/dashboard/change-password`,
         { currentPassword: pwForm.current, newPassword: pwForm.next },
         { withCredentials: true }
       );

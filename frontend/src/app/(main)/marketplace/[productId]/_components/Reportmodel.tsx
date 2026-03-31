@@ -32,7 +32,7 @@ export function ReportModal({ productId }: { productId: string }) {
     setState("loading");
     try {
       await axios.post(
-        `http://localhost:4000/api/marketplace/${productId}/report`,
+        `https://campus-marketplace-production-c93f.up.railway.app/api/marketplace/${productId}/report`,
         { reason, note: note.trim() || undefined },
         { withCredentials: true }
       );

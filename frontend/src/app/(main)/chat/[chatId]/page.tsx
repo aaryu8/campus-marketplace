@@ -49,7 +49,7 @@ export default function ChatPage({params} : Props) {
         try {
             console.log("HIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
 
-            const userRes = await axios.get('http://localhost:4000/api/auth/me', {
+            const userRes = await axios.get('https://campus-marketplace-production-c93f.up.railway.app/api/auth/me', {
                 withCredentials: true
             });
 
@@ -63,7 +63,7 @@ export default function ChatPage({params} : Props) {
             console.log(userRes.data);
 
             const convRes = await axios.get(
-                `http://localhost:4000/api/chat/conversation/${chatId}`,
+                `https://campus-marketplace-production-c93f.up.railway.app/api/chat/conversation/${chatId}`,
                 { withCredentials: true }
             );
 
@@ -87,7 +87,7 @@ export default function ChatPage({params} : Props) {
     useEffect(() => {
         if (!currentUserId) return;
 
-        const newSocket = io('http://localhost:4000');
+        const newSocket = io('https://campus-marketplace-production-c93f.up.railway.app');
         setSocket(newSocket);
         // on connect hi baake events emit honge
         newSocket.on('connect', () => {

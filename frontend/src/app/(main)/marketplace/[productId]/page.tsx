@@ -61,7 +61,7 @@ let productData: {
     try {
       const response = await axios({
         method: "GET",
-        url: `http://localhost:4000/api/marketplace/${productId}`,
+        url: `https://campus-marketplace-production-c93f.up.railway.app/api/marketplace/${productId}`,
         headers: { Cookie: `session_id=${sessionCookie?.value}` },
       });
 
@@ -86,7 +86,7 @@ let productData: {
     try {
       const me = await axios({
         method: "GET",
-        url: "http://localhost:4000/api/auth/me",
+        url: "https://campus-marketplace-production-c93f.up.railway.app/api/auth/me",
         headers: { Cookie: `session_id=${sessionCookie?.value}` },
       });
       buyerId = me.data.user.id;

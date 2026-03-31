@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import axios from 'axios';
 import s from '../inbox.module.css';
 
 interface ChatMessage {
@@ -44,7 +43,7 @@ export default function ChatPanel({
   useEffect(() => {
     if (!currentUserId || !chatId) return;
 
-    const newSocket = io('http://localhost:4000');
+    const newSocket = io('https://campus-marketplace-production-c93f.up.railway.app');
     setSocket(newSocket);
 
     newSocket.on('connect', () => {

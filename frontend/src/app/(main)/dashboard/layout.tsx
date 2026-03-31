@@ -12,7 +12,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   try {
     // We verify the session on the server before showing ANYTHING
-    await axios.get("http://localhost:4000/api/auth/me", {
+    await axios.get("https://campus-marketplace-production-c93f.up.railway.app/api/auth/me", {
       headers: { Cookie: `session_id=${session.value}` },
     });
   } catch (error) {
