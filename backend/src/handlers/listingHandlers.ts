@@ -13,7 +13,7 @@ const updateListingSchema = z.object({
   title:       z.string().min(3).max(80).transform((s) => s.trim()).optional(),
   price:       z.union([z.string(), z.number()]).transform((v) => Number(v)).refine((n) => Number.isFinite(n) && n >= 0).optional(),
   description: z.string().min(10).max(1000).transform((s) => s.trim()).optional(),
-  category:    z.enum(["general","books","electronics","furniture","clothes","tickets","sports","transport","hostel"]).optional(),
+  category:    z.enum(["general","books","electronics","furniture","clothes","food","sports","transport","hostel"]).optional(),
   condition:   z.enum(["new","like_new","good","fair","poor"]).optional(),
   // "paused" removed — status is now only active | sold
   status:      z.enum(["active","sold"]).optional(),

@@ -68,7 +68,7 @@ export const productSchema = z.object({
     "electronics",
     "furniture",
     "clothes",
-    "tickets",
+    "food",
     "sports",
     "transport",
     "hostel",
