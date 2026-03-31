@@ -22,11 +22,16 @@ const server = http.createServer(app);
 // ✅ Middleware
 app.use(cors({
     origin: [
-        'http://localhost:3000',
-        'https://dormdeal-tau.vercel.app/'
+        'https://dormdeal-tau.vercel.app',
+        'http://localhost:3000'
+        
     ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 }));
+
+app.options('*', cors());
 
 app.use(cookieParser());
 app.use(express.json());
@@ -43,7 +48,7 @@ app.use('/api/dashboard' , dashboardRoutes );
 
 // ✅ WebSocket / Chat
 const io = new SocketIOServer(server, {
-    cors: { origin: 'http://localhost:3000', credentials: true }
+    cors: { origin: ['https://dormdeal-tau.vercel.app' , 'http://localhost:3000'], credentials: true }
 });
 handleChatSockets(io); // plug in your chat logic here
 
