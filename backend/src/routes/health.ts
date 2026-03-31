@@ -9,7 +9,7 @@ router.get('/health', async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     await redisClient.ping();
-    await fetch(`https://your-project-ref.supabase.co/storage/v1/bucket`, {
+    await fetch(`${process.env.SUPABASE_URL}/storage/v1/bucket`, {
       headers: {
         Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}`,
         apikey: process.env.SUPABASE_ANON_KEY!,
