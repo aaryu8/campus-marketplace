@@ -23,7 +23,7 @@ const server = http.createServer(app);
 app.use(cors({
     origin: [
         'http://localhost:3000',
-        'https://campus-marketplace-production-c93f.up.railway.app'
+        'https://dormdeal-tau.vercel.app/'
     ],
     credentials: true,
 }));
