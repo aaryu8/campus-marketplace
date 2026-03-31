@@ -69,6 +69,9 @@ async function aggregateViewsToDB() {
 }
 
 // Runs every 5 minutes — change to '0 * * * *' for every hour in production
-cron.schedule('* * * * *', aggregateViewsToDB);
+cron.schedule('*/5 * * * *', () => {
+  console.log('⏰ Cron tick —', new Date().toISOString());
+  aggregateViewsToDB();
+});
 
 console.log('🚀 View aggregation cron scheduled');

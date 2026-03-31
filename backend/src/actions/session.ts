@@ -5,7 +5,7 @@ import z from 'zod';
 
 
 const SESSION_EXPIRATION_SECONDS = 60 * 60 * 24 * 7;
-const COOKIE_SESSION_KEY = 'session-id'
+
 
 
 const sessionSchema = z.object({

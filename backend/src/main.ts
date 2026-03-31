@@ -10,7 +10,8 @@ import marketplaceRoutes from './routes/marketplace.js';
 import dashboardRoutes from './routes/dashboard.js'
 import { handleChatSockets } from './ws/chat.js'; 
 import chatWork from './chat/chatWork.js';
-import './cron/views.js'; // starts the cron job
+import './cron/views.js';
+import healthRouter from './routes/health.js';
 dotenv.config();
 
 
@@ -29,7 +30,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-// ✅ REST API Routes
+app.use('/api', healthRouter);
+
 app.use('/api/auth', authRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/chat' , chatWork);
