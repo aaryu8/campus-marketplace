@@ -47,9 +47,8 @@ export default function ChatPage({params} : Props) {
         
         const fetchData = async () => {
         try {
-            console.log("HIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
-
-            const userRes = await axios.get('https://campus-marketplace-production-c93f.up.railway.app/api/auth/me', {
+            
+            const userRes = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, {
                 withCredentials: true
             });
 
@@ -59,11 +58,10 @@ export default function ChatPage({params} : Props) {
             setCurrentUserId(userId);
             setCurrentUserName(userName);
 
-            console.log(`LALALLALALALALALALLALALALALALALLA`);
             console.log(userRes.data);
 
             const convRes = await axios.get(
-                `https://campus-marketplace-production-c93f.up.railway.app/api/chat/conversation/${chatId}`,
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/conversation/${chatId}`,
                 { withCredentials: true }
             );
 
@@ -87,7 +85,7 @@ export default function ChatPage({params} : Props) {
     useEffect(() => {
         if (!currentUserId) return;
 
-        const newSocket = io('https://campus-marketplace-production-c93f.up.railway.app');
+        const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}`);
         setSocket(newSocket);
         // on connect hi baake events emit honge
         newSocket.on('connect', () => {

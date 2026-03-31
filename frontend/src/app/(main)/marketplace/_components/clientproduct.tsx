@@ -127,7 +127,7 @@ export const ButtonsComponent = ({ buyerId, sellerId, productId }: ButtonsCompon
       setLoading(true);
       const res = await axios({
         method: 'post',
-        url: 'https://campus-marketplace-production-c93f.up.railway.app/api/chat/createId',
+        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/createId`,
         withCredentials: true,
         data: { buyerId, sellerId, productId },
       });

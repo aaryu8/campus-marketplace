@@ -99,7 +99,7 @@ const CreateListingComponent = () => {
            
             const response = await axios({
                 method : "post",
-                url : "https://campus-marketplace-production-c93f.up.railway.app/api/marketplace/createListing",
+                url : `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/marketplace/createListing`,
                 withCredentials : true,
                 data : {
                     title : itemData.title,

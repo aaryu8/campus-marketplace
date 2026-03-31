@@ -7,7 +7,7 @@ import axios from "axios";
 import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/global/navbar";
 
-const API = "https://campus-marketplace-production-c93f.up.railway.app";
+const API = `${process.env.NEXT_PUBLIC_BACKEND_URL}`;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

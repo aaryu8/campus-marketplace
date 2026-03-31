@@ -60,7 +60,7 @@ function DisputeButton({ productId }: { productId: string }) {
     setState("loading");
     try {
       const res = await axios.post(
-        `https://campus-marketplace-production-c93f.up.railway.app/api/marketplace/${productId}/dispute`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/marketplace/${productId}/dispute`,
         {},
         { withCredentials: true }
       );

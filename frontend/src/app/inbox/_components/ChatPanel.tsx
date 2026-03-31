@@ -43,7 +43,7 @@ export default function ChatPanel({
   useEffect(() => {
     if (!currentUserId || !chatId) return;
 
-    const newSocket = io('https://campus-marketplace-production-c93f.up.railway.app');
+    const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}`);
     setSocket(newSocket);
 
     newSocket.on('connect', () => {

@@ -51,7 +51,7 @@ export default function Navbar({ userName, transparent = false }: NavbarProps) {
 
   const handleLogout = async () => {
     try {
-      await axios.post("https://campus-marketplace-production-c93f.up.railway.app/api/auth/logout", {}, { withCredentials: true });
+      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/logout`, {}, { withCredentials: true });
     } catch {}
     setAvatarOpen(false);
     router.push("/sign-in");

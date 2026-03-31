@@ -53,7 +53,7 @@ export default function InboxClient({ initialConversations }: Props) {
   const [mobileShowChat, setMobileShowChat] = useState(!!searchParams.get('chatId'));
 
   useEffect(() => {
-    axios.get('https://campus-marketplace-production-c93f.up.railway.app/api/auth/me', { withCredentials: true })
+    axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, { withCredentials: true })
       .then(res => {
         setCurrentUserId(res.data.user.id);
         setCurrentUserName(res.data.user.name);
@@ -72,7 +72,7 @@ export default function InboxClient({ initialConversations }: Props) {
   const handleDelete = async (chatId: string) => {
     setDeleting(true);
     try {
-      await axios.delete(`https://campus-marketplace-production-c93f.up.railway.app/api/chat/conversation/${chatId}`, {
+      await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/conversation/${chatId}`, {
         withCredentials: true,
       });
       setConversations(prev => prev.filter(c => c.chatId !== chatId));

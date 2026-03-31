@@ -152,7 +152,7 @@ const Dashboard = async () => {
   let dashboardData: DashboardData;
 
   try {
-    const response = await axios.get(`https://campus-marketplace-production-c93f.up.railway.app/api/dashboard/me`, {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard/me`, {
       headers: { Cookie: `session_id=${sessionCookie.value}` },
     });
 
