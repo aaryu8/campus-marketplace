@@ -28,10 +28,11 @@ export async function createSession( user : UserSession , res : Response){
 
     res.cookie("session_id", `${sessionId}`, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',  
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',  
+      secure: true,        // hardcode true, don't rely on env
+      sameSite: 'none',    // hardcode none for cross-domain
       maxAge: SESSION_EXPIRATION_SECONDS * 1000,
       path: '/',
+      domain: undefined,   // don't set domain for cross-origin
     });
 }
 
