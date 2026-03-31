@@ -13,7 +13,7 @@ const API = `${process.env.NEXT_PUBLIC_BACKEND_URL}`;
 
 type Category =
   | "general" | "books" | "electronics" | "furniture" | "clothes"
-  | "tickets" | "sports" | "transport" | "hostel";
+  | "food" | "sports" | "transport" | "hostel";
 type Condition     = "new" | "like_new" | "good" | "fair" | "poor";
 type ProductStatus = "active" | "sold";
 
@@ -38,7 +38,7 @@ const CATEGORIES: {
   { value: "electronics", label: "Electronics",       emoji: "💻", bg: "bg-blue-50",   border: "border-blue-200",   text: "text-blue-800",   activeBg: "bg-blue-600"   },
   { value: "furniture",   label: "Furniture",         emoji: "🪑", bg: "bg-green-50",  border: "border-green-200",  text: "text-green-800",  activeBg: "bg-green-600"  },
   { value: "clothes",     label: "Clothes",           emoji: "👕", bg: "bg-pink-50",   border: "border-pink-200",   text: "text-pink-800",   activeBg: "bg-pink-600"   },
-  { value: "tickets",     label: "Tickets & Access",  emoji: "🎟️", bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-800", activeBg: "bg-orange-500" },
+  { value: "food",     label: "Food & Snacks",  emoji: "🍜", bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-800", activeBg: "bg-orange-500" },
   { value: "sports",      label: "Sports & Fitness",  emoji: "🏸", bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-800", activeBg: "bg-purple-600" },
   { value: "transport",   label: "Cycles & Bikes",    emoji: "🚲", bg: "bg-teal-50",   border: "border-teal-200",   text: "text-teal-800",   activeBg: "bg-teal-600"   },
   { value: "hostel",      label: "Hostel Essentials", emoji: "🛏️", bg: "bg-rose-50",   border: "border-rose-200",   text: "text-rose-800",   activeBg: "bg-rose-600"   },
