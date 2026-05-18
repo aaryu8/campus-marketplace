@@ -11,7 +11,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'https://campus-marketplace-production-c93f.up.railway.app/api/:path*',
+        destination: 'https://dormdeal.onrender.com/api/:path*',
       },
     ];
   },
